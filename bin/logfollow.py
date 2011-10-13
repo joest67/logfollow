@@ -59,11 +59,10 @@ class LogConnection(object):
 
     def _on_read(self, line):
         """Called when new line received from connection"""
-        message = line.strip()
-        logging.info(message)
-        formatted = dict(message = 'log', content = message,
-                         identity = [self.filepath, self.address[0]])
-        ClientConnection.broadcast(formatted)
+        protocol = dict(type = 'entry',
+                        entries = [line.strip()],
+                        log = self.filepath)
+        ClientConnection.broadcast(protocol)
         self.wait()
 
     def wait(self):
@@ -91,33 +90,44 @@ class ClientConnection(SocketConnection):
     clients = set()
 
     def __init__(self, *args, **kwargs):
-        self.id = None
+        self.follow = set()
         super(ClientConnection, self).__init__(*args, **kwargs)
 
     @classmethod
     def broadcast(cls, message):
         """Send JSON encoded message to all connected clients"""
+        logging.info('Broadcasting: %s', message)
         json = json_encode(message)
         for client in cls.clients:
-            client.send(json)
+            if message['path'] in client.follow:
+                client.send(json)
 
     def on_open(self, *args, **kwargs):
         """Called when new connection from client created"""
-        logging.debug('client connected')
+        logging.debug('Client connected: %s', self)
         self.clients.add(self)
-        self.send(json_encode(dict(message = 'connection',
-                                   logs = list(LogConnection.logs))))
 
     def on_message(self, message):
-        logging.info(message)
-        if not self.id:
-            self.id = message.get('id', None)
-        self.send(json_encode(dict(message = 'sign', sign = self.id)))
+        """Called when protocol package received from client"""
+        logging.info('Received from client: %s', message)
+        self._command(json_decode(message))
 
     def on_close(self):
         """Called when connection is closed"""
-        logging.debug('client disconnected')
+        logging.debug('Client disconnected: %s', self)
         self.clients.remove(self)
+
+    def _command(self, protocol):
+        if protocol['command'] == 'follow':
+            self.follow = self.follow.union(set(protocol['logs']))
+        elif protocol['command'] == 'unfollow':
+            self.follow -= set(protocol['logs'])
+        else:
+            response = dict(type='status',
+                            status='ERROR',
+                            description='Undefined command')
+            self.send(json_encode(response))
+
 
 class LogTracer(Application):
     """Application object. Provide routing configuration."""
