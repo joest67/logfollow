@@ -35,11 +35,13 @@ Server -> Client (JSON)
 
     {
         type: 'status',
-        status: { <path>: 'OK', <path>: 'ERROR', ... },
-        description: { <path>: 'Description', <path>: 'Description', ... }
+        log: <path>,
+        status: 'OK' or 'ERROR',
+        description: 'Status description'
     }
 
     {
         type: 'entry',
-        entries: { <path>: [ 'entry 1', 'entry 2', .. ] }
+        log: <path>,
+        entries: [ 'entry 1', 'entry 2', .. ]
     }
