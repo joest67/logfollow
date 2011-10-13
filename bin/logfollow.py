@@ -8,7 +8,7 @@ from tornado import stack_context, ioloop
 from tornado.netutil import TCPServer
 from tornado.options import define, options, parse_command_line
 from tornado.httpserver import HTTPServer
-from tornado.web import Application, RequestHandler
+from tornado.web import Application, RequestHandler, StaticFileHandler
 from tornado.util import b, bytes_type
 from tornado.escape import json_encode
 
@@ -61,11 +61,9 @@ class LogConnection(object):
         """Called when new line received from connection"""
         message = line.strip()
         logging.info(message)
-        for client in ClientConnection.clients:
-            client.send(json_encode(dict(message = 'log',
-                                         content = message,
-                                         identity = [self.filepath,
-                                                     self.address[0]])))
+        formatted = dict(message = 'log', content = message,
+                         identity = [self.filepath, self.address[0]])
+        ClientConnection.broadcast(formatted)
         self.wait()
 
     def wait(self):
@@ -96,6 +94,13 @@ class ClientConnection(SocketConnection):
         self.id = None
         super(ClientConnection, self).__init__(*args, **kwargs)
 
+    @classmethod
+    def broadcast(cls, message):
+        """Send JSON encoded message to all connected clients"""
+        json = json_encode(message)
+        for client in cls.clients:
+            client.send(json)
+
     def on_open(self, *args, **kwargs):
         """Called when new connection from client created"""
         logging.debug('client connected')
@@ -119,6 +124,7 @@ class LogTracer(Application):
 
     def __init__(self):
         super(LogTracer, self).__init__([
+            (r"/static/(.*)", StaticFileHandler, dict(path='/etc/logfollow/')),
             (r"/", BroadcastHandler),
             get_router(ClientConnection).route()
         ], debug=options.debug)
