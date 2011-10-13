@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 
 try:
-    from setuptools import setup, find_packages
+    from setuptools import setup
 except ImportError, e:
     from ez_setup import use_setuptools
     use_setuptools()
-    from setuptools import setup, find_packages
+    from setuptools import setup
 
 setup(
     name='logfollow',
@@ -19,14 +19,12 @@ setup(
         'tornadio'
     ],
     packages=[],
-    scripts=[
-        'bin/logfollow.py',
-    ],
+    scripts=['bin/logfollow.py'],
     data_files = [
         ('/etc/logfollow', ['templates/console.html']),
         ('/etc/logfollow/js', ['templates/js/app.js']),
         ('/etc/logfollow/css', ['templates/css/app.css'])
     ],
-    include_package_data=True
+    include_package_data=True,
 )
 
