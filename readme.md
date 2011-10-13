@@ -11,11 +11,13 @@ Simple web based monitor for server logs
 
 Start HTTP server:
 
-    logfollow.py --logging=debug --port=9089
+    logfollow.py --logging=debug --port=8001
 
 Follow log file:
 
     tail -f <LOG_PATH> -v | nc 127.0.0.1 6777
+
+After this you can open web interface http://localhost:8001/.
 
 ### Messaging protocol
 
