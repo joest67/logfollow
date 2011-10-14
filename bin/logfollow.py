@@ -25,7 +25,6 @@ class LogStreamer(object):
     def tail(cls, path, follower):
         if path not in cls.stream:
             # TODO: Check file/credentials validity
-            # Save subprocess PID in order to check periodicaly
             cls.stream[path] = dict('pid'=cls._run(path), 'restart'=0,
                                     'followers'=set([follower]))
         else:
@@ -33,6 +32,7 @@ class LogStreamer(object):
 
     @staticmethod
     def _run(path):
+        """Save subprocess PID in order to check periodicaly"""
         return os.spawnl(os.P_NOWAIT, cls._command(path))
 
     @classmethod
@@ -56,14 +56,13 @@ class LogStreamer(object):
     def restart(cls, path):
         """Restart streaming process for given path"""
         if path not in cls.streams:
-            return
-
-        logging.warning('Restarting log streamer for: %s', path)
-        cls.streams[path]['restart'] += 1
-        cls.streams[path]['pid'] = cls._run(path)
+            logging.warning('Restarting log streamer for: %s', path)
+            cls.streams[path]['restart'] += 1
+            cls.streams[path]['pid'] = cls._run(path)
 
     @staticmethod
     def _command(path):
+        """Generate command for log stream run"""
         return 'tail -f -v %s | nc 127.0.0.1 %d' % (path, options.gateway)
 
 class LogServer(TCPServer):
