@@ -26,7 +26,7 @@ class LogStreamer(object):
             # TODO: Check file/credentials validity
             # Save subprocess PID in order to check periodicaly
             pid = os.spawnl(os.P_NOWAIT, cls._command(path))
-            cls.stream[path] = dict('pid': pid, 'followers': set([follower]))
+            cls.stream[path] = dict('pid'=pid, 'followers'=set([follower]))
         else:
             cls.stream[path]['followers'].add(follower)
 
