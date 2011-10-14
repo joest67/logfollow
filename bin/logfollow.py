@@ -1,6 +1,7 @@
 """Collect log from pushers with using TCP connection or ZMQ sockets."""
 
 import os
+import os.path
 import time
 import socket
 import logging
@@ -25,10 +26,14 @@ class LogStreamer(object):
         if path not in cls.stream:
             # TODO: Check file/credentials validity
             # Save subprocess PID in order to check periodicaly
-            pid = os.spawnl(os.P_NOWAIT, cls._command(path))
-            cls.stream[path] = dict('pid'=pid, 'followers'=set([follower]))
+            cls.stream[path] = dict('pid'=cls._run(path), 'restart'=0,
+                                    'followers'=set([follower]))
         else:
             cls.stream[path]['followers'].add(follower)
+
+    @staticmethod
+    def _run(path):
+        return os.spawnl(os.P_NOWAIT, cls._command(path))
 
     @classmethod
     def unfollow(cls, path, follower):
@@ -37,6 +42,25 @@ class LogStreamer(object):
             cls.stream[path]['followers'].remove(follower)
         except KeyError, TypeError:
             pass
+
+    @classmethod
+    def check(cls):
+        """Check PID for each streamer subprocess"""
+        for path, stream in cls.streams:
+            if not os.path.exists('/proc/%d' % stream['pid']):
+                # Process stopped
+                # TODO: Send notification to each user
+                cls.restart(path)
+
+    @classmethod
+    def restart(cls, path):
+        """Restart streaming process for given path"""
+        if path not in cls.streams:
+            return
+
+        logging.warning('Restarting log streamer for: %s', path)
+        cls.streams[path]['restart'] += 1
+        cls.streams[path]['pid'] = cls._run(path)
 
     @staticmethod
     def _command(path):
