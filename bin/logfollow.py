@@ -1,8 +1,9 @@
 """Collect log from pushers with using TCP connection or ZMQ sockets."""
 
+import os
+import time
 import socket
 import logging
-import os.path
 
 from tornado import stack_context, ioloop
 from tornado.netutil import TCPServer
@@ -13,6 +14,32 @@ from tornado.util import b, bytes_type
 from tornado.escape import json_encode, json_decode
 
 from tornadio import server, get_router, SocketConnection
+
+class LogStreamer(object):
+    """Call subprocessed for streaming logs"""
+
+    streams = dict()
+
+    @classmethod
+    def tail(cls, path, follower):
+        if path not in cls.stream:
+            # TODO: Check file/credentials validity
+            # Save subprocess PID in order to check periodicaly
+            pid = os.spawnl(os.P_NOWAIT, cls._command(path))
+            cls.stream[path] = dict('pid': pid, 'followers': set([follower]))
+        else:
+            cls.stream[path]['followers'].add(follower)
+
+    @classmethod
+    def unfollow(cls, path, follower):
+        """Remove client from list of followers"""
+        try:
+            cls.stream[path]['followers'].remove(follower)
+        except KeyError, TypeError:
+            pass
+
+    def _command(cls, path):
+        return 'tail -f -v %s | nc 127.0.0.1 %d' % (path, options.gateway)
 
 class LogServer(TCPServer):
     """Handle incoming TCP connections from log pusher clients"""
@@ -59,9 +86,8 @@ class LogConnection(object):
 
     def _on_read(self, line):
         """Called when new line received from connection"""
-        protocol = dict(type = 'entry',
-                        entries = [line.strip()],
-                        log = str(self))
+        protocol = dict(type = 'entry', entries = [line.strip()],
+                        log = str(self), time=time.time())
         ClientConnection.broadcast(protocol)
         self.wait()
 
@@ -81,16 +107,6 @@ class BroadcastHandler(RequestHandler):
     def get(self):
         self.render(os.path.join(options.templates, 'console.html'))
 
-    def post(self):
-        message = self.get_argument('message')
-        key = self.get_argument('id', None)
-        for client in ClientConnection.clients:
-            if key and not key == client.id:
-                continue
-            client.send(message)
-        self.write('message send.')
-
-
 class ClientConnection(SocketConnection):
     clients = set()
 
@@ -102,10 +118,9 @@ class ClientConnection(SocketConnection):
     def broadcast(cls, message):
         """Send JSON encoded message to all connected clients"""
         logging.info('Broadcasting: %s', message)
-        json = json_encode(message)
         for client in cls.clients:
-            if message['path'] in client.follow:
-                client.send(json)
+            if message['log'] in client.follow:
+                client.send(message)
 
     def on_open(self, *args, **kwargs):
         """Called when new connection from client created"""
@@ -125,8 +140,12 @@ class ClientConnection(SocketConnection):
     def _command(self, protocol):
         if protocol['command'] == 'follow':
             self.follow = self.follow.union(set(protocol['logs']))
+            for log in protocol['logs']:
+                LogStreamer.tail(log, self)
         elif protocol['command'] == 'unfollow':
             self.follow -= set(protocol['logs'])
+            for log in protocol['logs']:
+                LogStreamer.unfollow(log, self)
         else:
             response = dict(type='status',
                             status='ERROR',
