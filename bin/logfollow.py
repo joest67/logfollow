@@ -103,7 +103,9 @@ class LogConnection(object):
         server identity (not only file path) in future"""
         return self.filepath
 
-class BroadcastHandler(RequestHandler):
+class DashboardHandler(RequestHandler):
+    """Render HTML page with user's dashboard"""
+
     def get(self):
         self.render(os.path.join(options.templates, 'console.html'))
 
@@ -159,7 +161,7 @@ class LogTracer(Application):
     def __init__(self):
         super(LogTracer, self).__init__([
             (r"/static/(.*)", StaticFileHandler, dict(path='/etc/logfollow/')),
-            (r"/", BroadcastHandler),
+            (r"/", DashboardHandler),
             get_router(ClientConnection).route()
         ], debug=options.debug, socket_io_port=options.port)
 
