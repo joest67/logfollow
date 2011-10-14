@@ -38,7 +38,8 @@ class LogStreamer(object):
         except KeyError, TypeError:
             pass
 
-    def _command(cls, path):
+    @staticmethod
+    def _command(path):
         return 'tail -f -v %s | nc 127.0.0.1 %d' % (path, options.gateway)
 
 class LogServer(TCPServer):
