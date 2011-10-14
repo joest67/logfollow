@@ -10,7 +10,7 @@ from tornado.options import define, options, parse_command_line
 from tornado.httpserver import HTTPServer
 from tornado.web import Application, RequestHandler, StaticFileHandler
 from tornado.util import b, bytes_type
-from tornado.escape import json_encode
+from tornado.escape import json_encode, json_decode
 
 from tornadio import server, get_router, SocketConnection
 
@@ -115,7 +115,7 @@ class ClientConnection(SocketConnection):
     def on_message(self, message):
         """Called when protocol package received from client"""
         logging.info('Received from client: %s', message)
-        self._command(json_decode(message))
+        self._command(message)
 
     def on_close(self):
         """Called when connection is closed"""
@@ -131,7 +131,7 @@ class ClientConnection(SocketConnection):
             response = dict(type='status',
                             status='ERROR',
                             description='Undefined command')
-            self.send(json_encode(response))
+            self.send(response)
 
 
 class LogTracer(Application):
@@ -142,7 +142,7 @@ class LogTracer(Application):
             (r"/static/(.*)", StaticFileHandler, dict(path='/etc/logfollow/')),
             (r"/", BroadcastHandler),
             get_router(ClientConnection).route()
-        ], debug=options.debug)
+        ], debug=options.debug, socket_io_port=options.port)
 
 
 def start():
@@ -152,13 +152,13 @@ def start():
     tcp_server.listen(options.gateway)
     logging.debug('Start TCP server on %r port', options.gateway)
 
+    logging.debug('Start Websocket server on %r port', options.port)
     server.SocketServer(LogTracer(), io_loop=io_loop)
-    logging.debug('Start HTTP server on %r port', options.port)
 
     io_loop.start()
 
 define('debug', default=True, type=bool)
-define('port', default=6767, type=int)
+define('port', default=8001, type=int)
 define('gateway', default=6777, type=int)
 define('templates', default='/etc/logfollow', type=str)
 

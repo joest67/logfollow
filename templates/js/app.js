@@ -7,8 +7,7 @@ window.onload = function(){
 
     // register client
     socket.addEvent('connect', function(e) {
-            sign = Math.floor(Math.random(1000) * 1000);
-        socket.send({ id: sign });
+        socket.send({'command': 'follow', 'logs': ['/var/log/nginx/access.log']})
     });
 
     socket.connect();
