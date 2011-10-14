@@ -54,14 +54,14 @@ class LogConnection(object):
         line = line.strip()
         logging.info(line)
         self.filepath = line.split()[1]
-        self.__class__.logs.add(self.filepath)
+        self.__class__.logs.add(str(self))
         self.wait()
 
     def _on_read(self, line):
         """Called when new line received from connection"""
         protocol = dict(type = 'entry',
                         entries = [line.strip()],
-                        log = self.filepath)
+                        log = str(self))
         ClientConnection.broadcast(protocol)
         self.wait()
 
@@ -69,8 +69,13 @@ class LogConnection(object):
         self.stream.read_until(b("\n"), self._read_callback)
 
     def _on_disconnect(self, *args, **kwargs):
-        self.__class__.logs.remove(self.filepath)
+        self.__class__.logs.remove(str(self))
         logging.debug('Client disconnected %r', self.address)
+
+    def __str__(self):
+        """Build string representation, will be used for working with
+        server identity (not only file path) in future"""
+        return self.filepath
 
 class BroadcastHandler(RequestHandler):
     def get(self):
