@@ -5,6 +5,7 @@ import os.path
 import time
 import socket
 import logging
+import signal
 
 from tornado import stack_context, ioloop
 from tornado.netutil import TCPServer
@@ -25,8 +26,8 @@ class LogStreamer(object):
     def tail(cls, path, follower):
         if path not in cls.stream:
             # TODO: Check file/credentials validity
-            cls.stream[path] = dict('pid'=cls._run(path), 'restart'=0,
-                                    'followers'=set([follower]))
+            cls.stream[path] = dict(pid=cls._run(path), restart=0,
+                                    followers=set([follower]))
         else:
             cls.stream[path]['followers'].add(follower)
 
@@ -193,14 +194,25 @@ class LogTracer(Application):
 def start():
     io_loop = ioloop.IOLoop.instance()
 
-    tcp_server = LogServer(io_loop=io_loop)
-    tcp_server.listen(options.gateway)
+    io_loop.tcp_server = LogServer(io_loop=io_loop)
+    io_loop.tcp_server.listen(options.gateway)
     logging.debug('Start TCP server on %r port', options.gateway)
 
     logging.debug('Start Websocket server on %r port', options.port)
     server.SocketServer(LogTracer(), io_loop=io_loop)
 
-    io_loop.start()
+def catch_signal(signal, frame):
+    logging.warning('Caught signal: %s', signal)
+    ioloop.IOLoop.instance().add_callback(shutdown)
+
+def shutdown():
+    io_loop = ioloop.IOLoop.instance()
+
+    io_loop.tcp_server.stop()
+    logging.debug('Stopping TCP server')
+    
+    io_loop.add_timeout(time.time() + 2, io_loop.stop)
+    logging.debug('IO loop will be stopped in 2 seconds ...')
 
 define('debug', default=True, type=bool)
 define('port', default=8001, type=int)
@@ -209,5 +221,6 @@ define('templates', default='/etc/logfollow', type=str)
 
 if __name__ == '__main__':
     parse_command_line()
+    signal.signal(signal.SIGTERM, catch_signal)
+    signal.signal(signal.SIGINT, catch_signal)
     start()
-
