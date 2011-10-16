@@ -43,7 +43,7 @@ class LogStreamer(object):
         """Remove client from list of followers"""
         try:
             cls.stream[path]['followers'].remove(follower)
-        except KeyError, TypeError:
+        except (KeyError, TypeError):
             pass
 
     @classmethod
