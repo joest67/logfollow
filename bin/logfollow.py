@@ -7,6 +7,8 @@ import socket
 import logging
 import signal
 
+from functools import partial
+
 from tornado import stack_context, ioloop
 from tornado.netutil import TCPServer
 from tornado.options import define, options, parse_command_line
@@ -56,10 +58,20 @@ class LogStreamer(object):
     @classmethod
     def restart(cls, path):
         """Restart streaming process for given path"""
-        if path not in cls.streams:
-            logging.warning('Restarting log streamer for: %s', path)
+        if path in cls.streams and cls.streams[path].get('is_restarting', None):
+            cls.streams[path]['is_restarting'] = True
             cls.streams[path]['restart'] += 1
-            cls.streams[path]['pid'] = cls._run(path)
+            deadline = time.time() + 2 ** min(cls.streams[path]['restart'], 5)
+            logging.warning('Restart streamer for %s in %d sec', path, deadline)
+            ioloop.IOLoop.instance().add_timeout(deadline, 
+                partial(_restart_timeout, path=path))
+
+    @classmethod
+    def _restart_timeout(cls, path):
+        """Do restart after timeout"""
+        # TODO: Catch errors 
+        cls.streams[path]['pid'] = cls._run(path)
+        cls.streams[path]['is_restarting'] = False 
 
     @staticmethod
     def _command(path):
@@ -149,9 +161,10 @@ class ClientConnection(SocketConnection):
             if message['log'] in client.follow:
                 client.send(message)
 
-    def on_open(self, *args, **kwargs):
+    def on_open(self, request, *args, **kwargs):
         """Called when new connection from client created"""
         logging.debug('Client connected: %s', self)
+        self.open_request = request
         self.clients.add(self)
 
     def on_message(self, message):
