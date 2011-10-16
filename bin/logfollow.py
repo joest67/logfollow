@@ -68,7 +68,7 @@ class LogStreamer(object):
             logging.warning('Restart streamer for %s in %d sec', path, deadline)
 
             ioloop.IOLoop.instance().add_timeout(deadline, 
-                partial(_restart_timeout, path=path))
+                partial(cls._restart_timeout, path=path))
 
     @classmethod
     def _restart_timeout(cls, path):
