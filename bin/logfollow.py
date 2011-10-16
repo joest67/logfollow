@@ -58,11 +58,15 @@ class LogStreamer(object):
     @classmethod
     def restart(cls, path):
         """Restart streaming process for given path"""
-        if path in cls.streams and cls.streams[path].get('is_restarting', None):
+        if path in cls.streams and not cls.streams[path].get('is_restarting', False):
+            # Timeout will be changed from 1 to 32 seconds
+            deadline = time.time() + 2 ** min(cls.streams[path].get('restart', 0), 5)
+
             cls.streams[path]['is_restarting'] = True
             cls.streams[path]['restart'] += 1
-            deadline = time.time() + 2 ** min(cls.streams[path]['restart'], 5)
+
             logging.warning('Restart streamer for %s in %d sec', path, deadline)
+
             ioloop.IOLoop.instance().add_timeout(deadline, 
                 partial(_restart_timeout, path=path))
 
