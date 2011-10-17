@@ -19,6 +19,28 @@ from tornado.escape import json_encode, json_decode
 
 from tornadio import server, get_router, SocketConnection
 
+class Message:
+    """Namespace for specification of different messages"""
+
+    class Jsonable(object):
+        def __str__(self):
+            return json_encode(self.__dict__)
+    
+
+    class FollowOk(Message.Jsonable):
+        __slots__ = ('type', 'log', 'status')
+    
+        def __init__(self, path):
+            self.__dict__ = dict(type = 'status', log = path, status = 'OK')
+
+    class FollowError(Message.Jsonable):
+        __slots__ = ('type', 'log', 'status', 'description')
+    
+        def __init__(self, path, reason):
+            self.__dict__ = dict(type = 'status', log = path, status = 'ERROR', 
+                                  description = str(reason))
+    
+
 class LogStreamer(object):
     """Call subprocessed for streaming logs"""
 
@@ -26,12 +48,24 @@ class LogStreamer(object):
 
     @classmethod
     def tail(cls, path, follower):
-        if path not in cls.stream:
-            # TODO: Check file/credentials validity
-            cls.stream[path] = dict(pid=cls._run(path), restart=0,
-                                    followers=set([follower]))
-        else:
+        """Add additional follower to tail or start streamer if path is new"""
+    
+        if path in cls.stream:
             cls.stream[path]['followers'].add(follower)
+        else:
+            try:
+                # Check file's validity to work with
+                with open(path):
+                    cls.stream[path] = dict(pid=cls._run(path), restart=0,
+                                            followers=set([follower]))
+            except (IOError, OSError), e:
+                # Send error notification to user
+                follower.send(str(Message.FollowError(path, e)))
+                return False
+
+        # Send notification to user 
+        follower.send(str(Message.FollowOk(path)))
+        return True
 
     @staticmethod
     def _run(path):

@@ -17,7 +17,7 @@ Follow log file:
 
     tail -f <LOG_PATH> -v | nc 127.0.0.1 6777
 
-After this you can open web interface http://localhost:8001/.
+After this you can open web interface http://localhost:8001/ and follow visual tips.
 
 ### Messaging protocol
 
@@ -45,5 +45,6 @@ Server -> Client (JSON)
     {
         type: 'entry',
         log: <path>,
-        entries: [ 'entry 1', 'entry 2', .. ]
+        entries: [ 'entry 1', 'entry 2', .. ],
+        time: <UNIXTIMESTAMP>
     }
