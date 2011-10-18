@@ -27,13 +27,13 @@ class Message:
             return json_encode(self.__dict__)
     
 
-    class FollowOk(Message.Jsonable):
+    class FollowOk(Jsonable):
         __slots__ = ('type', 'log', 'status')
     
         def __init__(self, path):
             self.__dict__ = dict(type = 'status', log = path, status = 'OK')
 
-    class FollowError(Message.Jsonable):
+    class FollowError(Jsonable):
         __slots__ = ('type', 'log', 'status', 'description')
     
         def __init__(self, path, reason):
