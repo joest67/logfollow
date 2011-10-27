@@ -121,7 +121,9 @@ var dataStorage= {
 app = {
 	init: function() {
 
-	   this.storage = dataStorage.init();
+	   this.storage = dataStorage;
+           this.storage.init();
+
 	   this.data = this.storage.loadData();
 
            this.maxCatGuid = this.findMaxCatGuid();
