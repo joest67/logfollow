@@ -1,0 +1,11 @@
+#wrapper {
+  position: relative;
+  min-height: 600px;
+  min-width: 960px;
+}
+
+#templates {
+  display: none;
+}
+
+

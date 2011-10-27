@@ -1,14 +1,46 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <script src="http://cdn.socket.io/stable/socket.io.js"></script>
-    <script src="/static/js/app.js"></script>
+    <script type="text/javascript" src="http://cdn.socket.io/stable/socket.io.js"></script>
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js"></script>
+    <script type="text/javascript" src="/static/js/jquery.tmpl.js"></script>
+    <script type="text/javascript" src="/static/js/knockout-1.2.1.js"></script>
   </head>
   <body>
-    <h2>Log tracer</h2>
-    <div id='log'></div>
+    <div id="wrapper">
 
-    <script>
+	<div data-bind="template: 'greeting'"></div>
+
+        <script id="greeting" type="text/html">
+           <div class="overflay greeting">
+		<p data-bind="text: greeting.text"></p>
+	        <input />
+           </div>
+        </script>
+	
+	<ul class="subCategories" data-bind="template: 'window-inactive-list', foreach:categories"></ul>
+
+	<script id="window-inactive-list" type="text/html">
+             <li>
+	        <a href="#" class="remove" data-bind="click: categories().remove">Remove</a>
+		<a href="#" data-bind="text: categories().name, click: categories().setActive"></a>
+             </li>
+        </script>
+
+        <div data-bind="template: 'window', foreach:categories, visible: categories().isVisible "></div>
+
+        <script id="window" type="text/html">
+           <h3 data-bind="text: categories().name"></h3>
+	   <ul class="logList">
+             <li><a href="#"></a></li>
+           </ul>
+        </script>
+
+    </div>
+
+    <script type="text/javascript" src="/static/js/app.js"></script>
+    <script type="text/javascript">
+	app.init();
     </script>
   </body>
 </html>
