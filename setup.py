@@ -22,7 +22,9 @@ setup(
     scripts=['bin/logfollow.py'],
     data_files = [
         ('/etc/logfollow', ['templates/console.html']),
-        ('/etc/logfollow/js', ['templates/js/app.js']),
+        ('/etc/logfollow/js', ['templates/js/app.js', 
+                               'templates/js/jquery.tmpl.js', 
+                               'templates/js/knockout-1.2.1.js']),
         ('/etc/logfollow/css', ['templates/css/app.css'])
     ],
     include_package_data=True,
