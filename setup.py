@@ -8,24 +8,23 @@ except ImportError, e:
     from setuptools import setup
 
 setup(
-    name='logfollow',
-    version='0.0.1',
+    name='logfollow-server',
+    version='0.0.4',
     description='Web monitor for server logs',
     author='Alexey S. Kachayev',
     author_email='kachayev@gmail.com',
     dependency_links = [],
-    install_requires=[
-        'tornado==2.1.1',
-        'tornadio'
-    ],
-    packages=[],
-    scripts=['bin/logfollow.py'],
+    install_requires=['tornado==2.1.1','tornadio'],
+    packages=['logfollow'],
+    scripts=['bin/logfollowd.py'],
     data_files = [
-        ('/etc/logfollow', ['templates/console.html']),
-        ('/etc/logfollow/js', ['templates/js/app.js', 
-                               'templates/js/jquery.tmpl.js', 
-                               'templates/js/knockout-1.2.1.js']),
-        ('/etc/logfollow/css', ['templates/css/app.css'])
+        ('/var/logfollow', ['templates/console.html']),
+        ('/var/logfollow/js', ['templates/js/app.js']),
+        ('/var/logfollow/css', ['templates/css/app.css'])
     ],
     include_package_data=True,
+    entry_points = {
+        "distutils.commands": 
+            ["upload_scripts = logfollow.install:StaticFilesUploader"]
+    }
 )

@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <script type="text/javascript" src="http://cdn.socket.io/stable/socket.io.js"></script>
-    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js"></script>
-    <script type="text/javascript" src="/static/js/jquery.tmpl.js"></script>
-    <script type="text/javascript" src="/static/js/knockout-1.2.1.js"></script>
+    <script type="text/javascript" src="{% module LocalCopy('/js/socket.io.js') %}"></script>
+    <script type="text/javascript" src="{% module LocalCopy('/js/jquery.min.js') %}"></script>
+    <script type="text/javascript" src="{% module LocalCopy('/js/jquery.tmpl.js') %}"></script>
+    <script type="text/javascript" src="{% module LocalCopy('/js/knockout-1.2.1.js') %}"></script>
   </head>
   <body>
     <div id="wrapper">

@@ -7,12 +7,14 @@ Simple web based monitor for server logs.
 
     # get the sources
     sudo python setup.py install
+    # in order to use server without internet access
+    sudo python setup.py upload_scripts
 
 ### Launch
 
 Start HTTP server:
 
-    logfollow.py --logging=debug --port=8001
+    logfollowd.py --logging=debug --port=8001
 
 Follow log file:
 

@@ -18,6 +18,7 @@ from tornado.util import b, bytes_type
 from tornado.escape import json_encode, json_decode
 
 from tornadio import server, get_router, SocketConnection
+from logfollow import install, ui
 
 class Message:
     """Namespace for specification of different messages"""
@@ -190,6 +191,7 @@ class DashboardHandler(RequestHandler):
 
     def get(self):
         self.render(os.path.join(options.templates, 'console.html'))
+        
 
 class ClientConnection(SocketConnection):
     clients = set()
@@ -237,17 +239,20 @@ class ClientConnection(SocketConnection):
                             description='Undefined command')
             self.send(response)
 
-
 class LogTracer(Application):
     """Application object. Provide routing configuration."""
 
     def __init__(self):
+        settings = dict(debug=options.debug, 
+                        socket_io_port=options.port, 
+                        ui_modules=ui)
+                        
         super(LogTracer, self).__init__([
-            (r"/static/(.*)", StaticFileHandler, dict(path='/etc/logfollow/')),
+            (r"/static/(.*)", StaticFileHandler, 
+                dict(path=install.STATIC_DIR)),
             (r"/", DashboardHandler),
             get_router(ClientConnection).route()
-        ], debug=options.debug, socket_io_port=options.port)
-
+        ], **settings)
 
 def start():
     """Creqte objects of TCP and Websocket server and run it"""
@@ -283,7 +288,7 @@ def shutdown():
 define('debug', default=True, type=bool)
 define('port', default=8001, type=int)
 define('gateway', default=6777, type=int)
-define('templates', default='/etc/logfollow', type=str)
+define('templates', default='/var/logfollow', type=str)
 
 if __name__ == '__main__':
     parse_command_line()
