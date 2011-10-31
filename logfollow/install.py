@@ -1,8 +1,10 @@
-from os import system, path
+import os 
+import os.path
+
 from distutils.core import Command
 
 STATIC_DIR = '/var/logfollow'
-static = lambda type_, file_: path.join(STATIC_DIR, type_, file_)
+static = lambda type_, file_: os.path.join(STATIC_DIR, type_, file_)
 
 class StaticFilesUploader(Command):
     """Setuptools command for working with JS and CSS scripts"""
@@ -35,5 +37,5 @@ class StaticFilesUploader(Command):
         """Upload scripts and styles to local directory"""
         for script in self.scripts:
             print 'Uploading %s ...' % script[0]
-            system('wget -O %s - %s' % (static('js', script[2]), script[1]))
+            os.system('wget -O %s - %s' % (static('js', script[2]), script[1]))
 
