@@ -36,7 +36,7 @@ var dataListener = {
 		 rememberTransport: false
 	   });
 
-           /* XXX app method call */
+       /* XXX app method call */
 	   this.listener.addEvent('connect', function(e) {
  	       hoc.follow(app.getLogList());
 	   });
@@ -45,11 +45,11 @@ var dataListener = {
 	   this.connect();
 	},
 
-        connect: function() {
+    connect: function() {
 	   this.listener.connect();
 	},
 
-        bindEvents: function() {
+    bindEvents: function() {
 	   var hoc = this;
 
 	   /* XXX app method call */
@@ -58,21 +58,21 @@ var dataListener = {
 	   });
 	},
 
-        follow: function(logs) {
-           logs = logs || [];
-            
-           if (!logs.length) {
-              return;
-           }
+    follow: function(logs) {
+       logs = logs || [];
+        
+       if (!logs.length) {
+          return;
+       }
 	   this._push('follow', logs);
 	},
 
 	unfollow: function(logs) {
-           logs = logs || [];
-            
-           if (!logs.length) {
-              return;
-           }
+       logs = logs || [];
+        
+       if (!logs.length) {
+          return;
+       }
 	   this._push('unfollow', logs);
 	},
 
@@ -85,8 +85,8 @@ var dataStorage= {
 	init: function() {
 	},
 
-        loadData: function() {
-           return localStorage.getItem('logfollow') || this._loadFixtures();
+    loadData: function() {
+       return localStorage.getItem('logfollow') || this._loadFixtures();
 	},
 
 	saveData: function(data) {
@@ -100,11 +100,11 @@ var dataStorage= {
 		  		newLog: ko.observable("Log name")
 	      		},
 			categories: ko.observableArray([new logCategory({name: 'default'})])
-                  };
+       };
 	},
 
         /* clear data before save (do not save messages and status for logs) */
-        _sanitizeData: function(data) {
+    _sanitizeData: function(data) {
 	    var sanitizedObj = data || {};
 
 	    for (var catIndex in sanitizedObj.categories) {
@@ -114,7 +114,7 @@ var dataStorage= {
                 }
             }
 
-            return sanitizedObj;
+        return sanitizedObj;
 	}
 }
 
@@ -122,11 +122,11 @@ app = {
 	init: function() {
 
 	   this.storage = dataStorage;
-           this.storage.init();
+       this.storage.init();
 
 	   this.data = this.storage.loadData();
 
-           this.maxCatGuid = this.findMaxCatGuid();
+       this.maxCatGuid = this.findMaxCatGuid();
 
 	   this.initViewModel();
 
@@ -139,7 +139,7 @@ app = {
 	},
 
         /* return array of log sources to listen on socket connect */
-        getLogList: function() {
+    getLogList: function() {
 	   var logList = [];
            var data = this.data.categories;
            for (var catIndex in data) {
@@ -153,7 +153,7 @@ app = {
            return logList;
         },
 
-        findMaxCatGuid: function() {
+    findMaxCatGuid: function() {
 	   var guid = 1;
 
            var data = this.data.categories;
@@ -166,12 +166,12 @@ app = {
            return guid;
         },
 
-        generateCatLogGuid: function() {
+    generateCatLogGuid: function() {
              return ++this.maxCatGuid;
         },
 
 	/* this method apply on socket message recieve */
-        update: function(message) {
+    update: function(message) {
 	
         },
 
@@ -179,11 +179,11 @@ app = {
 		
         },
 
-        removeCategory: function(guid) {
+    removeCategory: function(guid) {
 
         },
 
-        setActiveCategory: function(guid) {
+    setActiveCategory: function(guid) {
 
         },
 
@@ -191,7 +191,7 @@ app = {
 
         },
 
-        addLogMessage: function(guid, message) {
+    addLogMessage: function(guid, message) {
 
         },
 
@@ -203,8 +203,8 @@ app = {
 	_bindEvents: function() {
 	   var hoc = this;
 
-           /* simple but lame */
-           setInterval(hoc.storage.saveData(hoc.data), 2500);
+       /* simple but lame */
+       setInterval(hoc.storage.saveData(hoc.data), 2500);
 	}
 }
 

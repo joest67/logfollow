@@ -157,7 +157,8 @@ class DashboardHandler(RequestHandler):
     """Render HTML page with user's dashboard"""
 
     def get(self):
-        self.render(os.path.join(self.application.options.templates, 'console.html'))
+        self.render(os.path.join(self.application.options.templates, 'console.html'),
+                     **self.application.settings)
         
 class ClientConnection(SocketConnection):
     clients = set()
