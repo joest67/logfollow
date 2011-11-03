@@ -1,47 +1,65 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <script type="text/javascript" src="{% module LocalCopy('/js/socket.io.js') %}"></script>
-    <script type="text/javascript" src="{% module LocalCopy('/js/jquery.min.js') %}"></script>
-    <script type="text/javascript" src="{% module LocalCopy('/js/jquery.tmpl.js') %}"></script>
-    <script type="text/javascript" src="{% module LocalCopy('/js/knockout-1.2.1.js') %}"></script>
-  </head>
-  <body>
-    <div id="wrapper">
+<head>
+<script type="text/javascript"
+	src="{% module LocalCopy('/js/socket.io.js') %}"></script>
+<script type="text/javascript"
+	src="{% module LocalCopy('/js/jquery.min.js') %}"></script>
+<script type="text/javascript"
+	src="{% module LocalCopy('/js/jquery.tmpl.js') %}"></script>
+<script type="text/javascript"
+	src="{% module LocalCopy('/js/knockout-1.2.1.js') %}"></script>
+</head>
+<body>
+	<div id="wrapper">
 
-	<div data-bind="template: 'greeting'"></div>
+		<div data-bind="template: 'greeting'"></div>
 
-        <script id="greeting" type="text/html">
-           <div class="overflay greeting">
-		<p data-bind="text: greeting.text"></p>
-	        <input />
+		<script id="greeting" type="text/html">
+           <div class="overlay greeting">
+			<form  data-bind="submit: app.addLog">
+			  <p data-bind="text: greeting.text"></p>
+			  <p>
+				<label for="category-select">Choose category:</label>
+			  	<select id="category-select" data-bind="options: categories, optionsText: 'name', optionsValue: 'name'"></select>
+			  </p>
+			  <p>
+				<label for="log-name">Enter log name:</label>
+			  	<input id="log-name" />
+			  </p>
+                          <p>
+				<label for="log-source">Enter log source:</label>
+			  	<input id="log-source" />
+			  </p>
+			  <p style="text-align: right">
+				<input type="submit" value="Add" />						
+              </p>
+            </form>
            </div>
         </script>
-	
-	<ul class="subCategories" data-bind="template: 'window-inactive-list', foreach:categories"></ul>
 
-	<script id="window-inactive-list" type="text/html">
-             <li>
-	        <a href="#" class="remove" data-bind="click: categories().remove">Remove</a>
-		<a href="#" data-bind="text: categories().name, click: categories().setActive"></a>
+		<ul class="subCategories" data-bind="template: 'window-inactive-list', foreach:categories"></ul>
+
+		<script id="window-inactive-list" type="text/html">
+             <li data-bind="visible: categories().isActive">
+	           <a href="#" class="remove" data-bind="click: categories().remove, enable: categories().count > 1">Remove</a>
+		       <a href="#" data-bind="text: categories().name, click: categories().setActive"></a>
              </li>
         </script>
 
-        <div data-bind="template: 'window', foreach:categories, visible: categories().isVisible "></div>
+		<div data-bind="template: 'window', foreach:logs "></div>
 
-        <script id="window" type="text/html">
-           <h3 data-bind="text: categories().name"></h3>
-	   <ul class="logList">
-             <li><a href="#"></a></li>
-           </ul>
+		<script id="window" type="text/html">
+           <h3 data-bind="text: categories().isActive"></h3>
+		   <div class="item"  data-bind="visible: logs().isActive, text: logs().name">ыаываыва</div>
         </script>
 
-    </div>
+	</div>
 
-    <script type="text/javascript" src="/static/js/app.js"></script>
-    <script type="text/javascript">
-	app.init();
-    </script>
-  </body>
+	<script type="text/javascript" src="/static/js/app.js"></script>
+	<script type="text/javascript">
+		app.init();
+	</script>
+</body>
 </html>
 
