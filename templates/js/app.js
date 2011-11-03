@@ -33,8 +33,8 @@ var dataListener = {
 	init : function() {
 		var hoc = this;
 
-		this.listener = new io.Socket(window.location.hostname, {
-			port : 8001,
+		this.listener = new io.Socket(settings.io.host, {
+			port : settings.io.port,
 			rememberTransport : false
 		});
 
@@ -118,7 +118,7 @@ var dataStorage = {
 				delete sanitizedObj.logs[logIndex]['isActive'];
 		}
 
-		return sanitizedObj;
+		return ko.mapping.toJS(sanitizedObj);
 	}
 }
 
@@ -130,17 +130,17 @@ app = {
 
 		/* for test only */
 		localStorage.removeItem('logfollow');
-		this.data = this.storage.loadData();
+		this.data = this.storage.loadData(); 
+		this.initViewModel();
 
 		this.maxLogGuid = this.findMaxGuid();
-
-		this.initViewModel();
 
 		this.listener = dataListener.init();
 		this._bindEvents();
 	},
 
 	initViewModel : function() {
+		this.data = ko.mapping.fromJS(this.data);
 		ko.applyBindings(this.data);
 	},
 
@@ -237,7 +237,7 @@ app = {
 
 	addLog : function(form) {
 		var categoryName = $("select", form).val();
-                var logName =  $("#log-name", form).val();
+        var logName =  $("#log-name", form).val();
 		var logSource =  $("#log-source", form).val();
 		if ('' == logSource || '' == logName || !app.checkCategoryExist(categoryName)) {
 			return;
@@ -248,9 +248,7 @@ app = {
 				'src' : logSource
 				});
 		log.categories.push(categoryName);
-		console.log(log);
 		app.data.logs.push(log);
-		console.log(app.data);
 	},
 
 	addLogMessage : function(guid, message) {

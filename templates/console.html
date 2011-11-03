@@ -12,6 +12,14 @@
 <script type="text/javascript" 
 	src="{% module LocalCopy('/js/knockout.mapping.js') %}"></script>
 </head>
+<script type="text/javascript">
+	settings = {
+			io: {
+				port: 8001,
+				host: window.location.hostname
+			}
+	};
+</script>
 <body>
 	<div id="wrapper">
 
@@ -52,8 +60,7 @@
 		<div data-bind="template: 'window', foreach:logs "></div>
 
 		<script id="window" type="text/html">
-           <h3 data-bind="text: categories().isActive"></h3>
-		   <div class="item"  data-bind="visible: logs().isActive, text: logs().name">ыаываыва</div>
+		   <div class="item" data-bind="text: logs().name"></div>
         </script>
 
 	</div>
