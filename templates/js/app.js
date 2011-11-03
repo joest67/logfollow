@@ -123,10 +123,10 @@ var dataStorage = {
 }
 
 app = {
-	init : function() {
+	init: function() {
 
-		this.storage = dataStorage;
-		this.storage.init();
+	   this.storage = dataStorage;
+       this.storage.init();
 
 		/* for test only */
 		localStorage.removeItem('logfollow');
@@ -159,7 +159,6 @@ app = {
 
 	findMaxGuid : function() {
 		var guid = 1;
-
 		var data = ko.toJS(this.data.logs);
 		for ( var logIndex in data) {
 			if (data[logIndex]['guid']
