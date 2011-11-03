@@ -21,7 +21,10 @@ class StaticFilesUploader(Command):
          'knockout-1.2.1.js'),
         ('jQuery Tmpl',
          'https://github.com/downloads/SteveSanderson/knockout/jquery.tmpl.js',
-         'jquery.tmpl.js')
+         'jquery.tmpl.js'),
+        ('Knockout Mapping',
+         'https://raw.github.com/SteveSanderson/knockout.mapping/2.0.1/build/knockout.mapping.js',
+         'knockout.mapping.js'),
     ]
     
     description = "Upload necessary JS and CSS scripts from CDN"
