@@ -52,6 +52,16 @@ Server -> Client (JSON)
         time: <UNIXTIMESTAMP>
     }
     
+
+## TODO
+
+1. Unit tests for basic actions and integration test for whole env
+2. Cross-platform log's listener implementation for both Linux and Mac OS
+3. Normal processing of remote logs 
+4. Plugins for directory/application listeners
+5. Filter and aggregation on client side 
+6. Configuration and customization facilities both from client and with config 
+7. ...
     
 ## License 
 
