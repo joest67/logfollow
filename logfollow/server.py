@@ -23,7 +23,13 @@ class LogStreamer(object):
 
     @classmethod
     def follow(cls, path, follower):
-        """Add additional follower to tail or start streamer if path is new"""
+        """Add additional follower to tail or start streamer if path is new
+        
+        Path can be just filepath to log or separated with ":" sign server 
+        identity and filepath (on remote machine). So, both of this variants:
+        /var/log/nginx/access.log and user@host:/var/log/nginx/access.log
+        will be valid.
+        """
     
         if path in cls.streams:
             cls.streams[path]['followers'].add(follower)
@@ -88,8 +94,23 @@ class LogStreamer(object):
 
     @staticmethod
     def _command(path):
-        """Generate command for log stream run"""
-        return 'tail -f -v %s | nc 127.0.0.1 %d' % (path, options.gateway)
+        """Generate command for log stream run
+        
+        In order to retrieve log stream from remote server, we will 
+        use SSH connection by given user@host pair. This will be enough 
+        only in case of password-less way of connection 
+        (with using ssh-key, for ex). 
+        
+        Auto checking of ssh keys validity or even facilities to provide 
+        auth parameters from client side, will be add during next iterations.
+        """
+        nc = "nc 127.0.0.1 %d" % options.gateway
+        if path.count(':') == 1:
+            tail = 'tail -f -v %s' % path
+        else:
+            tail = "ssh %s 'tail -f -v %s'" % path.split(':')
+                    
+        return " | ".join([nc, tail])
 
 class LogServer(TCPServer):
     """Handle incoming TCP connections from log pusher clients"""
