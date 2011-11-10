@@ -11,6 +11,7 @@ from tornado.httpserver import HTTPServer
 from tornado.web import Application, RequestHandler, StaticFileHandler
 from tornado.escape import json_encode, json_decode
 from tornado.util import b, bytes_type
+from tornado.options import options
 
 from tornadio import server, get_router, SocketConnection
 from logfollow import ui
@@ -105,12 +106,13 @@ class LogStreamer(object):
         auth parameters from client side, will be add during next iterations.
         """
         nc = "nc 127.0.0.1 %d" % options.gateway
-        if path.count(':') == 1:
+        if not path.count(':'):
             tail = 'tail -f -v %s' % path
         else:
-            tail = "ssh %s 'tail -f -v %s'" % path.split(':')
+            tail = "ssh %s 'tail -f -v %s'" % tuple(path.split(':', 1))
                     
-        return " | ".join([nc, tail])
+        logging.debug('Start streaming <%s> with <%s>', path, [tail, nc])
+        return " | ".join([tail, nc])
 
 class LogServer(TCPServer):
     """Handle incoming TCP connections from log pusher clients"""
