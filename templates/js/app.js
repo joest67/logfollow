@@ -18,7 +18,7 @@ function logCategory(catObj) {
 
 	return {
 		name : ko.observable(catObj.name),
-		isActive : ko.observable(catObj.isActive || true),
+		isActive : ko.observable(catObj.isActive || false),
 		remove : function() {
 			app.removeCategory(this.name());
 		},
@@ -104,21 +104,22 @@ var dataStorage = {
 			greeting : {
 				text : "Hello, you are new here. Add your first log below"
 			},
-			logs : ko.observableArray(),
-			categories : ko.observableArray([ new logCategory({name : 'default'}) ])
+			logs : ko.observableArray([new logItem({'name' : 'bla', 'src' : 'dfghdkg'})]),
+			categories : ko.observableArray([ new logCategory({name : 'default', isActive: true}) ])
 		};
 	},
 
 	/* clear data before save (do not save messages and status for logs) */
 	_sanitizeData : function(data) {
-		var sanitizedObj = data || {};
+		var sanitizedObj = ko.mapping.toJS(data) || {};
 
+		
 		for ( var logIndex in sanitizedObj.logs) {
 				delete sanitizedObj.logs[logIndex]['messages'];
 				delete sanitizedObj.logs[logIndex]['isActive'];
 		}
 
-		return ko.mapping.toJS(sanitizedObj);
+		return sanitizedObj;
 	}
 }
 
@@ -131,6 +132,7 @@ app = {
 		/* for test only */
 		localStorage.removeItem('logfollow');
 		this.data = this.storage.loadData(); 
+		//console.log(ko.toJS(this.data));
 		this.initViewModel();
 
 		this.maxLogGuid = this.findMaxGuid();
@@ -179,8 +181,17 @@ app = {
 
 	},
 
-	addCategory : function(catObj) {
+	addCategory : function(form) {
+        var catName =  $("#category-name", form).val();
+		if ('' == catName || app.checkCategoryExist(catName)) {
+			return;
+		}
 
+		var cat = new logCategory({
+				'name' : catName
+				});
+
+		app.data.categories.push(cat);
 	},
 
 	removeCategory : function(name) {
@@ -216,6 +227,7 @@ app = {
 		var categories = ko.toJS(this.data.categories);
 		var newActiveIndex = -1;
 		var oldActiveIndex = -1;
+		console.log(categories);
 		
 		for (var i in categories) {
 			if (categories[i].name == name) {
@@ -227,10 +239,15 @@ app = {
 			}
 		}
 		
+		console.log(newActiveIndex);
+		console.log(oldActiveIndex);
 		/* XXX ko should make it automatically */
 		if (-1 != newActiveIndex && newActiveIndex != oldActiveIndex ) {
-			this.data.categories[oldActiveIndex].isActive = false;
-			this.data.categories[newActiveIndex].isActive = true;
+		    if (-1 != oldActiveIndex) {
+		        this.data.categories[oldActiveIndex]().isActive = false;
+		    }
+			
+			this.data.categories[newActiveIndex]().isActive = true;
 		}
 	},
 
