@@ -259,12 +259,12 @@ app = {
 		var categoryName = $("select", form).val();
         var logName =  $("#log-name", form).val();
 		var logSource =  $("#log-source", form).val();
-		if ('' == logSource || '' == logName || !app.checkCategoryExist(categoryName)) {
+		if ('' == logSource || !app.checkCategoryExist(categoryName)) {
 			return;
 		}
 
 		var log = new logItem({
-				'name' : logName,
+				'name' : logName || logSource,
 				'src' : logSource
 				});
 		log.categories.push(categoryName);
