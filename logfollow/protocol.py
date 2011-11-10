@@ -1,5 +1,7 @@
 """Abstractions for handling and processing client/server messages"""
 
+from tornado.escape import json_encode
+
 class Message:
     """Namespace for specification of different messages"""
 
