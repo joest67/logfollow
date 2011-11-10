@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+<link rel="stylesheet" type="text/css" href="{% module LocalCopy('/css/app.css') %}" />
 <script type="text/javascript"
 	src="{% module LocalCopy('/js/socket.io.js') %}"></script>
 <script type="text/javascript"
@@ -23,8 +24,8 @@
 <body>
 	<div id="wrapper">
 
-        <div style="position: relative; width: 500px; overflow: hidden;">
-		    <div data-bind="template: 'greeting'" style="border: 1px solid #000; padding: 10px; width: 200px; float: left; "></div>
+        <div class="form-holder">
+		    <div id="log-form-holder" data-bind="template: 'greeting'"></div>
 
 		    <script id="greeting" type="text/html">
                <div class="overlay greeting">
@@ -49,7 +50,7 @@
                </div>
             </script>
             
-            <div data-bind="template: 'add-category'" style="border: 1px solid #000; padding: 10px; width: 200px; margin-left: 15px; float: left; "></div>
+            <div id="category-form-holder" data-bind="template: 'add-category'"></div>
 
 		    <script id="add-category" type="text/html">
                <div class="overlay category">
@@ -74,15 +75,15 @@
 		<script id="window-inactive-list" type="text/html">
              <li data-bind="visible: isActive">
 	           <a href="#" class="remove" data-bind="click: $data.remove, visible: isActive">Remove</a>
-	           <a href="#" data-bind="text: isActive, click: $data.setActive"></a>
+	           <a href="#" data-bind="text: name, click: $data.setActive"></a>
              </li>
         </script>
 
         <h3>Log list</h3>
-		<div data-bind="template: { name:'window', foreach:logs}"></div>
+		<div id="log-holder" data-bind="template: { name:'window', foreach:logs}"></div>
 
 		<script id="window" type="text/html">
-		   <div class="item" data-bind="text: $data.name"></div>
+		   <div class="item" data-bind="text: $data.messages"></div>
         </script>
 
 	</div>

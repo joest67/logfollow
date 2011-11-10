@@ -104,8 +104,8 @@ var dataStorage = {
 			greeting : {
 				text : "Hello, you are new here. Add your first log below"
 			},
-			logs : ko.observableArray([new logItem({'name' : 'bla', 'src' : 'dfghdkg'})]),
-			categories : ko.observableArray([ new logCategory({name : 'default', isActive: true}) ])
+			logs : ko.observableArray([new logItem({'name' : 'Apache log', 'src' : '/var/log/apache2/access.log', 'isActive' : true})]),
+			categories : ko.observableArray([ new logCategory({'name' : 'default', 'isActive': true}) ])
 		};
 	},
 
@@ -227,7 +227,7 @@ app = {
 		var categories = ko.toJS(this.data.categories);
 		var newActiveIndex = -1;
 		var oldActiveIndex = -1;
-		console.log(categories);
+		//console.log(categories);
 		
 		for (var i in categories) {
 			if (categories[i].name == name) {
@@ -239,8 +239,8 @@ app = {
 			}
 		}
 		
-		console.log(newActiveIndex);
-		console.log(oldActiveIndex);
+		//console.log(newActiveIndex);
+		//console.log(oldActiveIndex);
 		/* XXX ko should make it automatically */
 		if (-1 != newActiveIndex && newActiveIndex != oldActiveIndex ) {
 		    if (-1 != oldActiveIndex) {
