@@ -130,9 +130,8 @@ app = {
        this.storage.init();
 
 		/* for test only */
-		localStorage.removeItem('logfollow');
+		//localStorage.removeItem('logfollow');
 		this.data = this.storage.loadData(); 
-		//console.log(ko.toJS(this.data));
 		this.initViewModel();
 
 		this.maxLogGuid = this.findMaxGuid();
@@ -143,6 +142,11 @@ app = {
 
 	initViewModel : function() {
 		this.data = ko.mapping.fromJS(this.data);
+		
+		//this.data.getActiveCategoryName = ko.dependentObservable(function() {    
+        //   return this.categories().some(function(){ return this.isActive() == true });
+        //}, this.data);
+		
 		ko.applyBindings(this.data);
 	},
 
@@ -227,7 +231,7 @@ app = {
 		var categories = ko.toJS(this.data.categories);
 		var newActiveIndex = -1;
 		var oldActiveIndex = -1;
-		//console.log(categories);
+		console.log(categories);
 		
 		for (var i in categories) {
 			if (categories[i].name == name) {
@@ -244,10 +248,10 @@ app = {
 		/* XXX ko should make it automatically */
 		if (-1 != newActiveIndex && newActiveIndex != oldActiveIndex ) {
 		    if (-1 != oldActiveIndex) {
-		        this.data.categories[oldActiveIndex]().isActive = false;
+		        this.data.categories()[oldActiveIndex].isActive(false);
 		    }
 			
-			this.data.categories[newActiveIndex]().isActive = true;
+			this.data.categories()[newActiveIndex].isActive(true);
 		}
 	},
 
@@ -255,12 +259,12 @@ app = {
 		var categoryName = $("select", form).val();
         var logName =  $("#log-name", form).val();
 		var logSource =  $("#log-source", form).val();
-		if ('' == logSource || '' == logName || !app.checkCategoryExist(categoryName)) {
+		if ('' == logSource || !app.checkCategoryExist(categoryName)) {
 			return;
 		}
 
 		var log = new logItem({
-				'name' : logName,
+				'name' : logName || logSource,
 				'src' : logSource
 				});
 		log.categories.push(categoryName);
@@ -280,6 +284,6 @@ app = {
 		var hoc = this;
 
 		/* simple but lame */
-		setInterval(hoc.storage.saveData(hoc.data), 2500);
+		//setInterval(hoc.storage.saveData(hoc.data), 2500);
 	}
 }
