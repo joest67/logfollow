@@ -4,6 +4,9 @@ import os
 import os.path
 import socket
 import logging
+import time
+
+from datetime import datetime
 
 from tornado import stack_context, ioloop
 from tornado.netutil import TCPServer
@@ -152,10 +155,15 @@ class LogConnection(object):
         socket identity signiture.
         """
         line = line.strip()
-        logging.info(line)
-        self.filepath = line.split()[1]
-        self.__class__.logs.add(str(self))
-        self.wait()
+        try:
+            self.filepath = line.split()[1]
+        except IndexError:
+            self.filepath = None
+            logging.error('Illegal header send to TCP server: %s', line)
+            self.stream.close()
+        else:
+            self.__class__.logs.add(str(self))
+            self.wait()
 
     def _on_read(self, line):
         """Called when new line received from connection"""
@@ -168,13 +176,16 @@ class LogConnection(object):
         self.stream.read_until(b("\n"), self._read_callback)
 
     def _on_disconnect(self, *args, **kwargs):
-        self.__class__.logs.remove(str(self))
         logging.debug('Client disconnected %r', self.address)
+        try:
+            self.__class__.logs.remove(str(self))
+        except KeyError:
+            logging.warning('Try to remove illegal or undefined log')
 
     def __str__(self):
         """Build string representation, will be used for working with
         server identity (not only file path) in future"""
-        return self.filepath
+        return str(self.filepath)
 
 class DashboardHandler(RequestHandler):
     """Render HTML page with user's dashboard"""
