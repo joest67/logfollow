@@ -1,101 +1,101 @@
 <!DOCTYPE html>
 <html>
-<head>
-<link rel="stylesheet" type="text/css" href="{% module LocalCopy('/css/app.css') %}" />
-<script type="text/javascript"
-	src="{% module LocalCopy('/js/socket.io.js') %}"></script>
-<script type="text/javascript"
-	src="{% module LocalCopy('/js/jquery.min.js') %}"></script>
-<script type="text/javascript"
-	src="{% module LocalCopy('/js/jquery.tmpl.js') %}"></script>
-<script type="text/javascript"
-	src="{% module LocalCopy('/js/knockout-1.2.1.js') %}"></script>
-<script type="text/javascript" 
-	src="{% module LocalCopy('/js/knockout.mapping.js') %}"></script>
-</head>
-<script type="text/javascript">
-	settings = {
-			io: {
-				port: {{ socket_io_port }},
-				host: window.location.hostname
-			}
-	};
-</script>
-<body>
-	<div id="wrapper">
+    <head>
+        <link rel="stylesheet" type="text/css" href="{% module LocalCopy('/css/app.css') %}" />
+        <script type="text/javascript"
+        src="{% module LocalCopy('/js/socket.io.js') %}"></script>
+        <script type="text/javascript"
+        src="{% module LocalCopy('/js/jquery.min.js') %}"></script>
+        <script type="text/javascript"
+        src="{% module LocalCopy('/js/jquery.tmpl.js') %}"></script>
+        <script type="text/javascript"
+        src="{% module LocalCopy('/js/knockout-1.2.1.js') %}"></script>
+        <script type="text/javascript" 
+        src="{% module LocalCopy('/js/knockout.mapping.js') %}"></script>
+    </head>
+    <script type="text/javascript">
+        settings = {
+            io: {
+                port: {{ socket_io_port }},
+                host: window.location.hostname
+            }
+        };
+    </script>
+    <body>
+        <div id="wrapper">
 
-        <div class="form-holder">
-		    <div id="log-form-holder" data-bind="template: 'greeting'"></div>
+            <div class="form-holder">
+                <div id="log-form-holder" data-bind="template: 'greeting'"></div>
 
-		    <script id="greeting" type="text/html">
-               <div class="overlay greeting">
-			    <form  data-bind="submit: app.addLog">
-			      <p data-bind="text: greeting.text"></p>
-			      <p>
-				    <label for="category-select">Choose category:</label>
-			      	<select id="category-select" data-bind="options: categories, optionsText: 'name', optionsValue: 'name'"></select>
-			      </p>
-			      <p>
-				    <label for="log-name">Enter log name:</label>
-			      	<input id="log-name" />
-			      </p>
-                  <p>
-				    <label for="log-source">Enter log source:</label>
-			      	<input id="log-source" />
-			      </p>
-			      <p style="text-align: right">
-				    <input type="submit" value="Add" />						
-                  </p>
-                </form>
-               </div>
+                <script id="greeting" type="text/html">
+                <div class="overlay greeting">
+                    <form  data-bind="submit: app.addLog">
+                        <p data-bind="text: greeting.text"></p>
+                        <p>
+                            <label for="category-select">Choose category:</label>
+                            <select id="category-select" data-bind="options: categories, optionsText: 'name', optionsValue: 'name'"></select>
+                        </p>
+                        <p>
+                            <label for="log-name">Enter log name:</label>
+                            <input id="log-name" />
+                        </p>
+                        <p>
+                            <label for="log-source">Enter log source:</label>
+                            <input id="log-source" />
+                        </p>
+                        <p style="text-align: right">
+                            <input type="submit" value="Add" />						
+                        </p>
+                    </form>
+                </div>
+                </script>
+
+                <div id="category-form-holder" data-bind="template: 'add-category'"></div>
+
+                <script id="add-category" type="text/html">
+                <div class="overlay category">
+                    <form  data-bind="submit: app.addCategory">
+                        <p data-bind="text: greeting.text"></p>
+                        <p>
+                            <label for="category-name">Choose name:</label>
+                            <input type="text" id="category-name" />
+                        </p>
+                        <p style="text-align: right">
+                            <input type="submit" value="Add" />						
+                        </p>
+                    </form>
+                </div>
+                </script>
+
+            </div>
+
+            <h3>Category list</h3>
+            <ul class="subCategories" data-bind="template: { name: 'window-inactive-list', foreach:categories}"></ul>
+
+            <script id="window-inactive-list" type="text/html">
+                <li data-bind="visible: !$data.isActive()">
+                    <a class="delete" href="#" class="remove" data-bind="click: $data.remove">X</a>
+                    <a href="#" data-bind="text: $data.name(), click: $data.setActive"></a>
+                </li>
             </script>
-            
-            <div id="category-form-holder" data-bind="template: 'add-category'"></div>
 
-		    <script id="add-category" type="text/html">
-               <div class="overlay category">
-			    <form  data-bind="submit: app.addCategory">
-			      <p data-bind="text: greeting.text"></p>
-			      <p>
-				    <label for="category-name">Choose name:</label>
-			      	<input type="text" id="category-name" />
-			      </p>
-			      <p style="text-align: right">
-				    <input type="submit" value="Add" />						
-                  </p>
-                </form>
-               </div>
+            <h3>Selected category: <span data-bind="text: categories()"></span></h3>
+            <div id="log-holder" data-bind="template: { name:'window', foreach:logs}"></div>
+
+            <script id="window" type="text/html">
+                <div class="item">
+                    <h5 data-bind="text: $data.name"></h5>
+                    <div data-bind="text: $data.messages"></div>
+                </div>
             </script>
 
         </div>
-        
-        <h3>Category list</h3>
-		<ul class="subCategories" data-bind="template: { name: 'window-inactive-list', foreach:categories}"></ul>
 
-		<script id="window-inactive-list" type="text/html">
-             <li data-bind="visible: !$data.isActive()">
-	           <a class="delete" href="#" class="remove" data-bind="click: $data.remove">X</a>
-	           <a href="#" data-bind="text: $data.name(), click: $data.setActive"></a>
-             </li>
+        <script type="text/javascript" src="/static/js/app.js"></script>
+        <script type="text/javascript">
+            $(document).ready(function() {
+                app.init();
+            });
         </script>
-
-        <h3>Selected category: <span data-bind="text: categories()"></span></h3>
-		<div id="log-holder" data-bind="template: { name:'window', foreach:logs}"></div>
-
-		<script id="window" type="text/html">
-		   <div class="item">
-		        <h5 data-bind="text: $data.name"></h5>
-		        <div data-bind="text: $data.messages"></div>
-		   </div>
-        </script>
-
-	</div>
-
-	<script type="text/javascript" src="/static/js/app.js"></script>
-	<script type="text/javascript">
-	    $(document).ready(function() {
-	        app.init();
-	    });
-	</script>
-</body>
+    </body>
 </html>

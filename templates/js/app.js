@@ -1,289 +1,311 @@
 function logItem(logObj) {
-	if (!logObj.name || !logObj.src)
-		return {};
+    if (!logObj.name || !logObj.src)
+        return {};
 
-	return {
-		guid : logObj.guid || app.generateLogGuid(),
-		name : ko.observable(logObj.name),
-		src : ko.observable(logObj.src),
-		isActive : ko.observable(logObj.isActive || true),
-		messages : ko.observableArray(logObj.messages || []),
-		categories : ko.observableArray()
-	}
+    return {
+        guid : logObj.guid || app.generateLogGuid(),
+        name : ko.observable(logObj.name),
+        src : ko.observable(logObj.src),
+        isActive : ko.observable(logObj.isActive || true),
+        messages : ko.observableArray(logObj.messages || []),
+        categories : ko.observableArray()
+    }
 }
 
 function logCategory(catObj) {
-	if (!catObj.name)
-		return {};
+    if (!catObj.name)
+        return {};
 
-	return {
-		name : ko.observable(catObj.name),
-		isActive : ko.observable(catObj.isActive || false),
-		remove : function() {
-			app.removeCategory(this.name());
-		},
-		setActive : function() {
-			app.setActiveCategory(this.name());
-		}
-	}
+    return {
+        name : ko.observable(catObj.name),
+        isActive : ko.observable(catObj.isActive || false),
+        remove : function() {
+            app.removeCategory(this.name());
+        },
+        setActive : function() {
+            app.setActiveCategory(this.name());
+        }
+    }
 }
 
 /* this object gives simple interface for command listening/pushing (io.Socket) */
 var dataListener = {
-	init : function() {
-		var hoc = this;
+    init : function() {
+        var hoc = this;
 
-		this.listener = new io.Socket(settings.io.host, {
-			port : settings.io.port,
-			rememberTransport : false
-		});
+        this.listener = new io.Socket(settings.io.host, {
+            port : settings.io.port,
+            rememberTransport : false
+        });
 
-		/* XXX app method call */
-		this.listener.addEvent('connect', function(e) {
-			hoc.follow(app.getLogList());
-		});
+        /* XXX app method call */
+        this.listener.addEvent('connect', function(e) {
+            hoc.follow(app.getLogList());
+        });
 
-		this.bindEvents();
-		this.connect();
-	},
+        this.bindEvents();
+        this.connect();
+    },
 
-	connect : function() {
-		this.listener.connect();
-	},
+    connect : function() {
+        this.listener.connect();
+    },
 
-	bindEvents : function() {
-		var hoc = this;
+    bindEvents : function() {
+        var hoc = this;
 
-		/* XXX app method call */
-		this.listener.addEvent('message', function(data) {
-			app.update(data);
-		});
-	},
+        /* XXX app method call */
+        this.listener.addEvent('message', function(data) {
+            app.update(data);
+        });
+    },
 
-	follow : function(logs) {
-		logs = logs || [];
+    follow : function(logs) {
+        logs = logs || [];
 
-		if (!logs.length) {
-			return;
-		}
-		this._push('follow', logs);
-	},
+        if (!logs.length) {
+            return;
+        }
+        this._push('follow', logs);
+    },
 
-	unfollow : function(logs) {
-		logs = logs || [];
+    unfollow : function(logs) {
+        logs = logs || [];
 
-		if (!logs.length) {
-			return;
-		}
-		this._push('unfollow', logs);
-	},
+        if (!logs.length) {
+            return;
+        }
+        this._push('unfollow', logs);
+    },
 
-	_push : function(command, logs) {
-		this.listener.send({
-			'command' : command,
-			'logs' : logs
-		});
-	}
+    _push : function(command, logs) {
+        this.listener.send({
+            'command' : command,
+            'logs' : logs
+        });
+    }
 }
 
 var dataStorage = {
-	init : function() {
-	},
+    init : function() {
+    },
 
-	loadData : function() {
-		return localStorage.getItem('logfollow') || this._loadFixtures();
-	},
+    loadData : function() {
+        if (!localStorage.getItem('logfollow')) {
+            return this._loadFixtures();
+        }
+        
+        return JSON.parse(localStorage.getItem('logfollow'));
+    },
 
-	saveData : function(data) {
-		var dataToSave = this._sanitizeData(data);
-		return localStorage.setItem('logfollow', dataToSave);
-	},
+    saveData : function(data) {
+        var dataToSave = this._sanitizeData(data);
+        return localStorage.setItem('logfollow', dataToSave);
+    },
+    
+    clearData : function() {
+        return localStorage.removeItem('logfollow');
+    },
 
-	_loadFixtures : function() {
-		return {
-			greeting : {
-				text : "Hello, you are new here. Add your first log below"
-			},
-			logs : ko.observableArray([new logItem({'name' : 'Apache log', 'src' : '/var/log/apache2/access.log', 'isActive' : true})]),
-			categories : ko.observableArray([ new logCategory({'name' : 'default', 'isActive': true}) ])
-		};
-	},
+    _loadFixtures : function() {
+        return {
+            greeting : {
+                text : "Hello, you are new here. Add your first log below"
+            },
+            logs : ko.observableArray([new logItem({
+                'name' : 'Apache log', 
+                'src' : '/var/log/apache2/access.log', 
+                'isActive' : true
+            })]),
+            categories : ko.observableArray([ new logCategory({
+                'name' : 'default', 
+                'isActive': true
+            }) ])
+        };
+    },
 
-	/* clear data before save (do not save messages and status for logs) */
-	_sanitizeData : function(data) {
-		var sanitizedObj = ko.mapping.toJS(data) || {};
-
+    /* clear data before save (do not save messages and status for logs) */
+    _sanitizeData : function(data) {
+        var sanitizedObj = ko.mapping.toJS(data) || {};
 		
-		for ( var logIndex in sanitizedObj.logs) {
-				delete sanitizedObj.logs[logIndex]['messages'];
-				delete sanitizedObj.logs[logIndex]['isActive'];
-		}
+        for ( var logIndex in sanitizedObj.logs) {
+            delete sanitizedObj.logs[logIndex]['messages'];
+            delete sanitizedObj.logs[logIndex]['isActive'];
+        }
 
-		return sanitizedObj;
-	}
+        return JSON.stringify(sanitizedObj);
+    }
 }
 
 app = {
-	init: function() {
+    init: function() {
 
-	   this.storage = dataStorage;
-       this.storage.init();
+        this.storage = dataStorage;
+        this.storage.init();
 
-		/* for test only */
-		//localStorage.removeItem('logfollow');
-		this.data = this.storage.loadData(); 
-		this.initViewModel();
+        this.data = this.storage.loadData(); 
+        this.initViewModel();
 
-		this.maxLogGuid = this.findMaxGuid();
+        this.maxLogGuid = this.findMaxGuid();
 
-		this.listener = dataListener.init();
-		this._bindEvents();
-	},
+        this.listener = dataListener.init();
+        this._bindEvents();
+    },
 
-	initViewModel : function() {
-		this.data = ko.mapping.fromJS(this.data);
+    initViewModel : function() {
+        this.data = ko.mapping.fromJS(this.data);
 		
-		//this.data.getActiveCategoryName = ko.dependentObservable(function() {    
+        //this.data.getActiveCategoryName = ko.dependentObservable(function() {    
         //   return this.categories().some(function(){ return this.isActive() == true });
         //}, this.data);
 		
-		ko.applyBindings(this.data);
-	},
+        ko.applyBindings(this.data);
+    },
 
-	/* return array of log sources to listen on socket connect */
-	getLogList : function() {
-		var logList = [];
-		var data = ko.toJS(this.data.logs);
-		for ( var logIndex in data) {
-			if (data[logIndex]['src']) {
-				logList.push(data[logIndex]['src']);
-			}
-		}
+    /* return array of log sources to listen on socket connect */
+    getLogList : function() {
+        var logList = [];
+        var data = ko.toJS(this.data.logs);
+        for ( var logIndex in data) {
+            if (data[logIndex]['src']) {
+                logList.push(data[logIndex]['src']);
+            }
+        }
 
-		return logList;
-	},
+        return logList;
+    },
 
-	findMaxGuid : function() {
-		var guid = 1;
-		var data = ko.toJS(this.data.logs);
-		for ( var logIndex in data) {
-			if (data[logIndex]['guid']
-					&& parseInt(data[logIndex]['guid'], 10) > guid) {
-				guid = parseInt(data[logIndex]['guid'], 10);
-			}
-		}
+    findMaxGuid : function() {
+        var guid = 1;
+        var data = ko.toJS(this.data.logs);
+        for ( var logIndex in data) {
+            if (data[logIndex]['guid']
+                && parseInt(data[logIndex]['guid'], 10) > guid) {
+                guid = parseInt(data[logIndex]['guid'], 10);
+            }
+        }
 
-		return guid;
-	},
+        return guid;
+    },
 
-	generateLogGuid : function() {
-		return ++this.maxLogGuid;
-	},
+    generateLogGuid : function() {
+        return ++this.maxLogGuid;
+    },
 
-	/* this method apply on socket message receive */
-	update : function(message) {
+    /* this method apply on socket message receive */
+    update : function(message) {
 
-	},
+    },
 
-	addCategory : function(form) {
+    addCategory : function(form) {
         var catName =  $("#category-name", form).val();
-		if ('' == catName || app.checkCategoryExist(catName)) {
-			return;
-		}
+        if ('' == catName || app.checkCategoryExist(catName)) {
+            return;
+        }
 
-		var cat = new logCategory({
-				'name' : catName
-				});
+        var cat = new logCategory({
+            'name' : catName
+        });
 
-		app.data.categories.push(cat);
-	},
+        app.data.categories.push(cat);
+    },
 
-	removeCategory : function(name) {
-		var categories = ko.toJS(this.data.categories);
-		for (var i in categories) {
-			if (categories[i].name == name) {
-				this.data.categories.splice(i, 1);
-			}
-		}
+    removeCategory : function(name) {
+        var categories = ko.toJS(this.data.categories);
+        for (var i in categories) {
+            if (categories[i].name == name) {
+                this.data.categories.splice(i, 1);
+            }
+        }
 		
-		/* XXX maybe not need due to ko */
-		var logs = ko.toJS(this.data.logs);
-		for (var i in logs) {
-			if (-1 != logs[i].categories.indexOf(name)) {
-				var removeIndex = logs[i].categories.indexOf(name);
-				this.data.logs[i].categories.splice(removeIndex, 1);
-			}
-		}
+        /* XXX maybe not need due to ko */
+        var logs = ko.toJS(this.data.logs);
+        for (var i in logs) {
+            if (-1 != logs[i].categories.indexOf(name)) {
+                var removeIndex = logs[i].categories.indexOf(name);
+                this.data.logs[i].categories.splice(removeIndex, 1);
+            }
+        }
 
-	},
+    },
 	
-	checkCategoryExist: function(name) {
-		var categories = ko.toJS(this.data.categories);
-		for (var i in categories) {
-			if (categories[i].name == name) {
-				return true;
-			}
-		}
-		return false;
-	},
+    checkCategoryExist: function(name) {
+        var categories = ko.toJS(this.data.categories);
+        for (var i in categories) {
+            if (categories[i].name == name) {
+                return true;
+            }
+        }
+        return false;
+    },
+    
+    checkLogExist: function(source) {
+        var logs = ko.toJS(this.data.logs);
+        for (var i in logs) {
+            if (logs[i].src == source) {
+                return true;
+            }
+        }
+        return false;
+    },
 
-	setActiveCategory : function(name) {
-		var categories = ko.toJS(this.data.categories);
-		var newActiveIndex = -1;
-		var oldActiveIndex = -1;
-		console.log(categories);
+    setActiveCategory : function(name) {
+        var categories = ko.toJS(this.data.categories);
+        var newActiveIndex = -1;
+        var oldActiveIndex = -1;
+        //console.log(categories);
 		
-		for (var i in categories) {
-			if (categories[i].name == name) {
-				newActiveIndex = i;
-			}
+        for (var i in categories) {
+            if (categories[i].name == name) {
+                newActiveIndex = i;
+            }
 			
-			if (categories[i].isActive) {
-				oldActiveIndex = i;
-			}
-		}
+            if (categories[i].isActive) {
+                oldActiveIndex = i;
+            }
+        }
 		
-		//console.log(newActiveIndex);
-		//console.log(oldActiveIndex);
-		/* XXX ko should make it automatically */
-		if (-1 != newActiveIndex && newActiveIndex != oldActiveIndex ) {
-		    if (-1 != oldActiveIndex) {
-		        this.data.categories()[oldActiveIndex].isActive(false);
-		    }
+        //console.log(newActiveIndex);
+        //console.log(oldActiveIndex);
+        /* XXX ko should make it automatically */
+        if (-1 != newActiveIndex && newActiveIndex != oldActiveIndex ) {
+            if (-1 != oldActiveIndex) {
+                this.data.categories()[oldActiveIndex].isActive(false);
+            }
 			
-			this.data.categories()[newActiveIndex].isActive(true);
-		}
-	},
+            this.data.categories()[newActiveIndex].isActive(true);
+        }
+    },
 
-	addLog : function(form) {
-		var categoryName = $("select", form).val();
+    addLog : function(form) {
+        var categoryName = $("select", form).val();
         var logName =  $("#log-name", form).val();
-		var logSource =  $("#log-source", form).val();
-		if ('' == logSource || !app.checkCategoryExist(categoryName)) {
-			return;
-		}
+        var logSource =  $("#log-source", form).val();
+        if ('' == logSource || !app.checkCategoryExist(categoryName) || app.checkLogExist(logSource)) {
+            return;
+        }
 
-		var log = new logItem({
-				'name' : logName || logSource,
-				'src' : logSource
-				});
-		log.categories.push(categoryName);
-		app.data.logs.push(log);
-	},
+        var log = new logItem({
+            'name' : logName || logSource,
+            'src' : logSource
+        });
+        log.categories.push(categoryName);
+        app.data.logs.push(log);
+    },
 
-	addLogMessage : function(guid, message) {
+    addLogMessage : function(guid, message) {
 
-	},
+    },
 
-	/* single integer(string) guid value allowed */
-	removeLogs : function(guids) {
+    /* single integer(string) guid value allowed */
+    removeLogs : function(guids) {
 
-	},
+    },
 
-	_bindEvents : function() {
-		var hoc = this;
+    _bindEvents : function() {
+        var hoc = this;
 
-		/* simple but lame */
-		//setInterval(hoc.storage.saveData(hoc.data), 2500);
-	}
+        /* simple but lame */
+        setInterval(function() { hoc.storage.saveData(hoc.data) }, 5000);
+    }
 }
