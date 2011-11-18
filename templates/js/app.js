@@ -30,8 +30,16 @@ function logCategory(catObj) {
 
 /* this object gives simple interface for command listening/pushing (io.Socket) */
 var dataListener = {
+    
+    _addConstants : function() {
+        this.MESSAGE_ENTRY = 'entry';
+        this.MESSAGE_STATUS = 'status';
+    },    
+    
     init : function() {
         var hoc = this;
+        
+        this._addConstants();
 
         this.listener = new io.Socket(settings.io.host, {
             port : settings.io.port,
@@ -129,8 +137,8 @@ var dataStorage = {
         var sanitizedObj = ko.mapping.toJS(data) || {};
 		
         for ( var logIndex in sanitizedObj.logs) {
-            delete sanitizedObj.logs[logIndex]['messages'];
-            delete sanitizedObj.logs[logIndex]['isActive'];
+            sanitizedObj.logs[logIndex]['messages'] = [];
+            //sanitizedObj.logs[logIndex]['isActive'] = true;
         }
 
         return JSON.stringify(sanitizedObj);
@@ -144,7 +152,9 @@ app = {
         this.storage.init();
 
         this.data = this.storage.loadData(); 
+        //console.log(this.data);
         this.initViewModel();
+        //console.log(this.data);
 
         this.maxLogGuid = this.findMaxGuid();
 
@@ -193,8 +203,17 @@ app = {
     },
 
     /* this method apply on socket message receive */
-    update : function(message) {
-
+    update : function(data) {
+        if (!data || !data.type) {
+            return;
+        }
+          
+        if (data.type == dataListener.MESSAGE_ENTRY) {
+            this.addLogMessage(data);
+        }
+        
+        
+        
     },
 
     addCategory : function(form) {
@@ -265,8 +284,6 @@ app = {
             }
         }
 		
-        //console.log(newActiveIndex);
-        //console.log(oldActiveIndex);
         /* XXX ko should make it automatically */
         if (-1 != newActiveIndex && newActiveIndex != oldActiveIndex ) {
             if (-1 != oldActiveIndex) {
@@ -293,8 +310,24 @@ app = {
         app.data.logs.push(log);
     },
 
-    addLogMessage : function(guid, message) {
-
+    addLogMessage : function(data) {
+        if (!data.log || !this.checkLogExist(data.log) || !data.entries.length) {
+            return;
+        }
+        
+        /* XXX maybe not need due to ko */
+        var logs = ko.toJS(app.data.logs);
+        for (var i in logs) {
+            if (data.log == logs[i].src) {  
+                //console.log(app.data);console.log(app.data.logs);console.log(app.data.logs[i]);
+                for (var m in data.entries) {
+                    app.data.logs[i].messages.push(data.entries[m]);
+                }
+                
+                break;
+                
+            }
+        }
     },
 
     /* single integer(string) guid value allowed */
