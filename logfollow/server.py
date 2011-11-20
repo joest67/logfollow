@@ -183,6 +183,7 @@ class LogConnection(object):
         self.wait()
 
     def wait(self):
+        """Read from stream until the next signed end of line"""
         self.stream.read_until(b("\n"), self._read_callback)
 
     def _on_disconnect(self, *args, **kwargs):
@@ -209,6 +210,7 @@ class ClientConnection(SocketConnection):
     clients = set()
 
     def __init__(self, *args, **kwargs):
+        """Initialize client connection by creating empty list of followed logs"""
         self.follow = set()
         super(ClientConnection, self).__init__(*args, **kwargs)
 
@@ -237,6 +239,13 @@ class ClientConnection(SocketConnection):
         self.clients.remove(self)
 
     def _command(self, protocol):
+        """Switch between known commands from message.
+        
+        Possible in future we will redesign this actions 
+        with using some modern MVC-like or Command-based pattern
+        for handling many different commands, but for this time 
+        it's fully enough.
+        """
         if protocol['command'] == 'follow':
             self.follow = self.follow.union(set(protocol['logs']))
             for log in protocol['logs']:
@@ -261,8 +270,11 @@ class LogTracer(Application):
                         ui_modules=ui)
                         
         super(LogTracer, self).__init__([
+            # Static files handling is necessary only for working with 
+            # js/css files uploaded to local machine with using install script
             (r"/static/(.*)", StaticFileHandler, 
                 dict(path=options.templates)),
             (r"/", DashboardHandler),
+            # Routes for working with WebSocket handlers and imitators 
             get_router(ClientConnection).route()
         ], **settings)
