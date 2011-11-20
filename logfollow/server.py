@@ -1,6 +1,7 @@
 """Application handlers and servers"""
 
 import os
+import subprocess
 import os.path
 import socket
 import logging
@@ -19,6 +20,14 @@ from tornado.options import options
 from tornadio import server, get_router, SocketConnection
 from logfollow import ui
 from logfollow.protocol import Message
+
+def pipe(commands):
+    """Communicate given list of process into one pipe"""
+    def into(r, el):
+        return subprocess.Popen(el, stdout=subprocess.PIPE, shell=True, 
+                                 stdin=(r.stdout if r else None))    
+
+    return reduce(into, commands, None)
 
 class LogStreamer(object):
     """Call subprocessed for streaming logs"""
@@ -46,6 +55,7 @@ class LogStreamer(object):
             except (IOError, OSError), e:
                 # Send error notification to user
                 follower.send(str(Message.FollowError(path, e)))
+                logging.exception(e)
                 return False
 
         # Send notification to user 
@@ -55,8 +65,8 @@ class LogStreamer(object):
     @classmethod
     def _run(cls, path):
         """Save subprocess PID in order to check periodicaly"""
-        return os.spawnl(os.P_NOWAIT, cls._command(path))
-
+        return pipe(cls._command(path)).pid
+        
     @classmethod
     def unfollow(cls, path, follower):
         """Remove client from list of followers"""
@@ -114,15 +124,15 @@ class LogStreamer(object):
         else:
             tail = "ssh %s 'tail -f -v %s'" % tuple(path.split(':', 1))
                     
-        logging.debug('Start streaming <%s> with <%s>', path, [tail, nc])
-        return " | ".join([tail, nc])
+        logging.info('Start streaming %s with %s', path, [tail, nc])
+        return tail, nc
 
 class LogServer(TCPServer):
     """Handle incoming TCP connections from log pusher clients"""
 
     def handle_stream(self, stream, address):
         """Called when new IOStream object is ready for usage"""
-        logging.debug('Incoming connection from %r', address)
+        logging.info('Incoming connection from %r', address)
         LogConnection(stream, address, server=self)
 
 class LogConnection(object):
@@ -176,7 +186,7 @@ class LogConnection(object):
         self.stream.read_until(b("\n"), self._read_callback)
 
     def _on_disconnect(self, *args, **kwargs):
-        logging.debug('Client disconnected %r', self.address)
+        logging.info('Client disconnected %r', self.address)
         try:
             self.__class__.logs.remove(str(self))
         except KeyError:
@@ -191,7 +201,8 @@ class DashboardHandler(RequestHandler):
     """Render HTML page with user's dashboard"""
 
     def get(self):
-        self.render(os.path.join(self.application.options.templates, 'console.html'),
+        self.render(os.path.join(self.application.options.templates, 
+                                 'console.html'),
                      **self.application.settings)
         
 class ClientConnection(SocketConnection):
@@ -204,14 +215,14 @@ class ClientConnection(SocketConnection):
     @classmethod
     def broadcast(cls, message):
         """Send JSON encoded message to all connected clients"""
-        logging.info('Broadcasting: %s', message)
+        logging.debug('Broadcasting: %s', message)
         for client in cls.clients:
             if message['log'] in client.follow:
                 client.send(message)
 
     def on_open(self, request, *args, **kwargs):
         """Called when new connection from client created"""
-        logging.debug('Client connected: %s', self)
+        logging.info('Client connected: %s', self)
         self.open_request = request
         self.clients.add(self)
 
@@ -222,7 +233,7 @@ class ClientConnection(SocketConnection):
 
     def on_close(self):
         """Called when connection is closed"""
-        logging.debug('Client disconnected: %s', self)
+        logging.info('Client disconnected: %s', self)
         self.clients.remove(self)
 
     def _command(self, protocol):
