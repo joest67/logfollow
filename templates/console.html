@@ -79,7 +79,7 @@
                 </li>
             </script>
 
-            <h3>Selected category: <span data-bind="text: categories()"></span></h3>
+            <h3>Selected category: <span data-bind="text: app.data.activeCategory()[0].name()"></span></h3>
             <div id="log-holder" data-bind="template: { name:'window', foreach:logs}"></div>
 
             <script id="window" type="text/html">

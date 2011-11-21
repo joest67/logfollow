@@ -151,10 +151,9 @@ app = {
         this.storage = dataStorage;
         this.storage.init();
 
-        this.data = this.storage.loadData(); 
-        //console.log(this.data);
+        //this.storage.clearData();
+        this.data = this.storage.loadData();
         this.initViewModel();
-        //console.log(this.data);
 
         this.maxLogGuid = this.findMaxGuid();
 
@@ -163,11 +162,28 @@ app = {
     },
 
     initViewModel : function() {
-        this.data = ko.mapping.fromJS(this.data);
-		
-        //this.data.getActiveCategoryName = ko.dependentObservable(function() {    
-        //   return this.categories().some(function(){ return this.isActive() == true });
-        //}, this.data);
+        var hoc = this;
+        
+        var mapping = {
+            'logs': {
+                create: function(options) {
+                    return new logItem(options.data);
+                }
+            },
+            'categories': {
+                create: function(options) {
+                    return new logCategory(options.data);
+                }
+            }
+        }
+        
+        this.data = ko.mapping.fromJS(this.data, mapping);
+        
+        this.data.activeCategory = ko.dependentObservable(function() {
+            return ko.utils.arrayFilter(hoc.data.categories(), function(category) {
+                return category.isActive() == true;
+            });
+        }, this.data);
 		
         ko.applyBindings(this.data);
     },
@@ -286,11 +302,11 @@ app = {
 		
         /* XXX ko should make it automatically */
         if (-1 != newActiveIndex && newActiveIndex != oldActiveIndex ) {
+            this.data.categories()[newActiveIndex].isActive(true);
+            
             if (-1 != oldActiveIndex) {
                 this.data.categories()[oldActiveIndex].isActive(false);
-            }
-			
-            this.data.categories()[newActiveIndex].isActive(true);
+            } 
         }
     },
 
@@ -321,7 +337,7 @@ app = {
             if (data.log == logs[i].src) {  
                 //console.log(app.data);console.log(app.data.logs);console.log(app.data.logs[i]);
                 for (var m in data.entries) {
-                    app.data.logs[i].messages.push(data.entries[m]);
+                    app.data.logs()[i].messages.push(data.entries[m]);
                 }
                 
                 break;
