@@ -30,7 +30,8 @@
                 <script id="greeting" type="text/html">
                 <div class="overlay greeting">
                     <form  data-bind="submit: app.addLog">
-                        <p data-bind="text: greeting.text"></p>
+                        <p data-bind="text: staticText.addLogMessage, visible: !app.data.isFirstLog()"></p>
+                        <p data-bind="text: staticText.greeting, visible: app.data.isFirstLog()"></p>
                         <p>
                             <label for="category-select">Choose category:</label>
                             <select id="category-select" data-bind="options: categories, optionsText: 'name', optionsValue: 'name'"></select>
@@ -55,7 +56,7 @@
                 <script id="add-category" type="text/html">
                 <div class="overlay category">
                     <form  data-bind="submit: app.addCategory">
-                        <p data-bind="text: greeting.text"></p>
+                        <p data-bind="text: staticText.addCategoryMessage"></p>
                         <p>
                             <label for="category-name">Choose name:</label>
                             <input type="text" id="category-name" />
@@ -85,8 +86,14 @@
             <script id="window" type="text/html">
                 <div class="item">
                     <h5 data-bind="text: $data.name"></h5>
-                    <div data-bind="text: $data.messages"></div>
+                    <a href="#" class="delete" data-bind="click: $data.remove">x</a>
+                    <div data-bind="template: { name: 'message-item', foreach: $data.messages }"></div>
+                    <div class="status-bar" data-bind="text: $data.name, visible: !$data.isActive()"></div>
                 </div>
+            </script>
+            
+            <script id="message-item" type="text/html">
+                <span data-bind="text: $data"></span>
             </script>
 
         </div>

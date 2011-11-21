@@ -8,7 +8,13 @@ function logItem(logObj) {
         src : ko.observable(logObj.src),
         isActive : ko.observable(logObj.isActive || true),
         messages : ko.observableArray(logObj.messages || []),
-        categories : ko.observableArray()
+        categories : ko.observableArray(),
+        remove : function() {
+            if (!confirm('Are you sure you want to delete "' + this.src() + '"?')) {
+                return;
+            }
+            app.removeLog(this.src());
+        }
     }
 }
 
@@ -117,18 +123,19 @@ var dataStorage = {
 
     _loadFixtures : function() {
         return {
-            greeting : {
-                text : "Hello, you are new here. Add your first log below"
-            },
-            logs : ko.observableArray([new logItem({
+            logs : [ 
+            {
                 'name' : 'Apache log', 
                 'src' : '/var/log/apache2/access.log', 
                 'isActive' : true
-            })]),
-            categories : ko.observableArray([ new logCategory({
+            }
+            ],
+            categories : [ 
+            {
                 'name' : 'default', 
-                'isActive': true
-            }) ])
+                'isActive': true 
+            }
+            ]
         };
     },
 
@@ -138,7 +145,7 @@ var dataStorage = {
 		
         for ( var logIndex in sanitizedObj.logs) {
             sanitizedObj.logs[logIndex]['messages'] = [];
-            //sanitizedObj.logs[logIndex]['isActive'] = true;
+        //sanitizedObj.logs[logIndex]['isActive'] = true;
         }
 
         return JSON.stringify(sanitizedObj);
@@ -152,7 +159,7 @@ app = {
         this.storage.init();
 
         //this.storage.clearData();
-        this.data = this.storage.loadData();
+        this.data = this.storage.loadData(); 
         this.initViewModel();
 
         this.maxLogGuid = this.findMaxGuid();
@@ -179,11 +186,21 @@ app = {
         
         this.data = ko.mapping.fromJS(this.data, mapping);
         
+        this.data.staticText = {
+            greeting : "Hello, you are new here. Add your first log below",
+            addLogMessage : "Add new log",
+            addCategoryMessage : "Add new category"
+        };
+        
         this.data.activeCategory = ko.dependentObservable(function() {
             return ko.utils.arrayFilter(hoc.data.categories(), function(category) {
                 return category.isActive() == true;
             });
         }, this.data);
+        
+        this.data.isFirstLog = ko.dependentObservable(function() {
+            return hoc.data.logs().length > 0 ? false : true;
+        }, this.data); 
 		
         ko.applyBindings(this.data);
     },
@@ -285,10 +302,9 @@ app = {
     },
 
     setActiveCategory : function(name) {
-        var categories = ko.toJS(this.data.categories);
-        var newActiveIndex = -1;
-        var oldActiveIndex = -1;
-        //console.log(categories);
+        var categories = ko.toJS(this.data.categories), 
+        newActiveIndex = -1,
+        oldActiveIndex = -1;
 		
         for (var i in categories) {
             if (categories[i].name == name) {
@@ -311,9 +327,10 @@ app = {
     },
 
     addLog : function(form) {
-        var categoryName = $("select", form).val();
-        var logName =  $("#log-name", form).val();
-        var logSource =  $("#log-source", form).val();
+        var categoryName = $("select", form).val(),
+        logName =  $("#log-name", form).val(),
+        logSource =  $("#log-source", form).val();
+            
         if ('' == logSource || !app.checkCategoryExist(categoryName) || app.checkLogExist(logSource)) {
             return;
         }
@@ -335,7 +352,6 @@ app = {
         var logs = ko.toJS(app.data.logs);
         for (var i in logs) {
             if (data.log == logs[i].src) {  
-                //console.log(app.data);console.log(app.data.logs);console.log(app.data.logs[i]);
                 for (var m in data.entries) {
                     app.data.logs()[i].messages.push(data.entries[m]);
                 }
@@ -346,15 +362,21 @@ app = {
         }
     },
 
-    /* single integer(string) guid value allowed */
-    removeLogs : function(guids) {
-
+    removeLog : function(src) {
+        var logs = ko.toJS(this.data.logs);
+        for (var i in logs) {
+            if (logs[i].src == src) {
+                this.data.logs.splice(i, 1);
+            }
+        }
     },
 
     _bindEvents : function() {
         var hoc = this;
 
         /* simple but lame */
-        setInterval(function() { hoc.storage.saveData(hoc.data) }, 5000);
+        setInterval(function() {
+            hoc.storage.saveData(hoc.data)
+        }, 5000);
     }
 }
