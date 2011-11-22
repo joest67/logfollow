@@ -164,7 +164,8 @@ app = {
 
         this.maxLogGuid = this.findMaxGuid();
 
-        this.listener = dataListener.init();
+        this.listener = dataListener;
+        this.listener.init();
         this._bindEvents();
     },
 
@@ -341,6 +342,7 @@ app = {
         });
         log.categories.push(categoryName);
         app.data.logs.push(log);
+        app.listener.follow([logSource]);
     },
 
     addLogMessage : function(data) {
@@ -369,6 +371,8 @@ app = {
                 this.data.logs.splice(i, 1);
             }
         }
+        
+        app.listener.unfollow([src]);
     },
 
     _bindEvents : function() {
