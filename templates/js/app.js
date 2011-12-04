@@ -14,6 +14,9 @@ function logItem(logObj) {
             }
             app.removeLog(this.src());
         },
+        edit : function() {
+            app.editLog(this.src());
+        },
         isActiveCategoryLog: function() {
             var activeCategoryName = app.data.activeCategory()[0].name();
                 
@@ -34,6 +37,9 @@ function logCategory(catObj) {
         name : ko.observable(catObj.name),
         isActive : ko.observable(catObj.isActive || false),
         remove : function() {
+            if (!confirm('Are you sure you want to delete category "' + this.name() + '"?')) {
+                return;
+            }
             app.removeCategory(this.name());
         },
         setActive : function() {
@@ -169,10 +175,6 @@ app = {
         /* init data storage */
         this.storage = dataStorage;
         this.storage.init();
-
-        /* for debug only */
-        /* clear all saved data and start from scratch */
-        this.storage.clearData();
         
         /* load saved data from storage */
         this.data = this.storage.loadData();
@@ -221,7 +223,7 @@ app = {
         
         this.data.isFirstLog = ko.dependentObservable(function() {
             return hoc.data.logs().length > 0 ? false : true;
-        }, this.data); 
+        }, this.data);
 		
         ko.applyBindings(this.data);
     },
@@ -264,6 +266,8 @@ app = {
         });
 
         app.data.categories.push(cat);
+        
+        $("input[type=text], select", form).val('');
     },
 
     removeCategory : function(name) {
@@ -353,9 +357,12 @@ app = {
         if (!log.categories().length) {
             return;
         }
+
+        $("input[type=text]", form).val('');
         
         app.data.logs.push(log);
-        app.listener.follow([logSource]);
+        app.listener.follow([logSource]); 
+        
     },
 
     addLogMessage : function(data) {
@@ -387,6 +394,22 @@ app = {
         
         app.listener.unfollow([src]);
     },
+    
+    editLog : function(src) {
+        console.log(src);
+    },
+    
+        
+    clearAll: function() {
+        if (!confirm('Are you sure you want to delete all data?')) {
+            return;
+        }
+        
+        app.storage.clearData();
+        app.data = {};
+        
+        window.location.href = '/';
+    },
 
     _bindEvents : function() {
         var hoc = this;
@@ -395,5 +418,24 @@ app = {
         setInterval(function() {
             hoc.storage.saveData(hoc.data)
         }, 5000);
+        
+        /* toDo create pop-up manager */
+        /* XXX remove this later */
+        $('#showAddForm').click(function(e) {
+            e.preventDefault();
+            $('.overlay').hide();
+            $('#log-form-holder').show();
+        });
+        
+        $('#showAddCategory').click(function(e) {
+            e.preventDefault();
+            $('.overlay').hide();
+            $('#category-form-holder').show();
+        });
+        
+        $('.holder .close').click(function(e) {
+            e.preventDefault();
+            $('.overlay').hide();
+        })
     }
 }

@@ -12,6 +12,7 @@
         src="{% module LocalCopy('/js/knockout-1.2.1.js') %}"></script>
         <script type="text/javascript" 
         src="{% module LocalCopy('/js/knockout.mapping.js') %}"></script>
+        <link rel="icon" type="image/png" href="/favicon.ico" />
     </head>
     <script type="text/javascript">
         settings = {
@@ -22,13 +23,71 @@
         };
     </script>
     <body>
-        <div id="wrapper">
+        
+        <div id="wrapper" class="cf">
+            <!-- main actions menu -->
+            <ul id="mainActions">
+                <li>
+                    <a href="#" id="showAddForm">Add log</a>
+                </li>
+                <li>
+                    <a href="#" id="showAddCategory">Add category</a>
+                </li>
+                <li>
+                    <a href="#" data-bind="click: app.clearAll">Clear all saved data</a>
+                </li>
+            </ul>
+            <!-- end main actions menu -->
+            
+            
+            <!-- contain categories -->
+            <aside>
+                <h3 id="activeCategory" data-bind="text: app.data.activeCategory()[0].name()"></h3>
+                
+                
+                <ul class="subCategories" data-bind="template: { name: 'window-inactive-list', foreach:categories}"></ul>
 
-            <div class="form-holder">
-                <div id="log-form-holder" data-bind="template: 'greeting'"></div>
+                <!-- subcategory item template -->
+                <script id="window-inactive-list" type="text/html">
+                    <li data-bind="visible: !$data.isActive()">
+                        <a class="delete" href="#" class="remove" data-bind="click: $data.remove">X</a>
+                        <a href="#" data-bind="text: $data.name(), click: $data.setActive"></a>
+                    </li>
+                </script>
+                <!-- end subcategory item -->
+                
+            </aside>
+            <!-- end aside -->
+            
+            <section id="log-holder" class="cf" data-bind="template: { name:'window', foreach:logs}"></section>
 
-                <script id="greeting" type="text/html">
-                <div class="overlay greeting">
+            <!-- log item template -->
+            <script id="window" type="text/html">
+                <div class="item" data-bind="visible: $data.isActiveCategoryLog()">
+                    <h5 data-bind="text: $data.name"></h5>
+                    <a href="#" class="delete" data-bind="click: $data.remove">X</a>
+                    <a href="#" class="edit" data-bind="click: $data.edit">E</a>
+                    <div class="body" data-bind="template: { name: 'message-item', foreach: $data.messages }"></div>
+                    <div class="status-bar"></div>
+                </div>
+            </script>
+            <!-- end log item template -->
+            
+            <!-- message template for item -->
+            <script id="message-item" type="text/html">
+                <span data-bind="text: $data"></span>
+            </script>
+            <!-- end message template -->
+            
+            <!-- -------------------  -->
+            <!--      overlays        -->
+            <!-- -------------------  -->
+            <div id="log-form-holder" class="overlay" data-bind="template: 'addLog'"></div>
+
+            <!-- add log form template  -->
+            <script id="addLog" type="text/html">
+                <div class="holder greeting">
+                    <a href="#" class="close">X</a>
                     <form  data-bind="submit: app.addLog">
                         <p data-bind="text: staticText.addLogMessage, visible: !app.data.isFirstLog()"></p>
                         <p data-bind="text: staticText.greeting, visible: app.data.isFirstLog()"></p>
@@ -38,23 +97,26 @@
                         </p>
                         <p>
                             <label for="log-name">Enter log name:</label>
-                            <input id="log-name" />
+                            <input  type="text" id="log-name" />
                         </p>
                         <p>
                             <label for="log-source">Enter log source:</label>
-                            <input id="log-source" />
+                            <input  type="text" id="log-source" />
                         </p>
                         <p style="text-align: right">
                             <input type="submit" value="Add" />						
                         </p>
                     </form>
                 </div>
-                </script>
+            </script>
+            <!-- end add log form template  -->
 
-                <div id="category-form-holder" data-bind="template: 'add-category'"></div>
+            <div id="category-form-holder" class="overlay" data-bind="template: 'add-category'"></div>
 
-                <script id="add-category" type="text/html">
-                <div class="overlay category">
+            <!-- add category form template  -->
+            <script id="add-category" type="text/html">
+                <div class="holder category">
+                    <a href="#" class="close">X</a>
                     <form  data-bind="submit: app.addCategory">
                         <p data-bind="text: staticText.addCategoryMessage"></p>
                         <p>
@@ -66,35 +128,8 @@
                         </p>
                     </form>
                 </div>
-                </script>
-
-            </div>
-
-            <h3>Category list</h3>
-            <ul class="subCategories" data-bind="template: { name: 'window-inactive-list', foreach:categories}"></ul>
-
-            <script id="window-inactive-list" type="text/html">
-                <li data-bind="visible: !$data.isActive()">
-                    <a class="delete" href="#" class="remove" data-bind="click: $data.remove">X</a>
-                    <a href="#" data-bind="text: $data.name(), click: $data.setActive"></a>
-                </li>
             </script>
-
-            <h3>Selected category: <span data-bind="text: app.data.activeCategory()[0].name()"></span></h3>
-            <div id="log-holder" data-bind="template: { name:'window', foreach:logs}"></div>
-
-            <script id="window" type="text/html">
-                <div class="item" data-bind="visible: $data.isActiveCategoryLog()">
-                    <h5 data-bind="text: $data.name"></h5>
-                    <a href="#" class="delete" data-bind="click: $data.remove">x</a>
-                    <div data-bind="template: { name: 'message-item', foreach: $data.messages }"></div>
-                    <div class="status-bar" data-bind="text: $data.name, visible: !$data.isActive()"></div>
-                </div>
-            </script>
-            
-            <script id="message-item" type="text/html">
-                <span data-bind="text: $data"></span>
-            </script>
+            <!-- end add category form template  -->
 
         </div>
 
