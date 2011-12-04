@@ -34,7 +34,7 @@
                         <p data-bind="text: staticText.greeting, visible: app.data.isFirstLog()"></p>
                         <p>
                             <label for="category-select">Choose category:</label>
-                            <select id="category-select" data-bind="options: categories, optionsText: 'name', optionsValue: 'name'"></select>
+                            <select id="category-select" multiple="multiple" data-bind="options: categories, optionsText: 'name', optionsValue: 'name'"></select>
                         </p>
                         <p>
                             <label for="log-name">Enter log name:</label>
@@ -84,7 +84,7 @@
             <div id="log-holder" data-bind="template: { name:'window', foreach:logs}"></div>
 
             <script id="window" type="text/html">
-                <div class="item">
+                <div class="item" data-bind="visible: $data.isActiveCategoryLog()">
                     <h5 data-bind="text: $data.name"></h5>
                     <a href="#" class="delete" data-bind="click: $data.remove">x</a>
                     <div data-bind="template: { name: 'message-item', foreach: $data.messages }"></div>

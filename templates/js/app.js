@@ -3,17 +3,25 @@ function logItem(logObj) {
         return {};
 
     return {
-        guid : logObj.guid || app.generateLogGuid(),
         name : ko.observable(logObj.name),
         src : ko.observable(logObj.src),
         isActive : ko.observable(logObj.isActive || true),
         messages : ko.observableArray(logObj.messages || []),
-        categories : ko.observableArray(),
+        categories : ko.observableArray(logObj.categories || []),
         remove : function() {
             if (!confirm('Are you sure you want to delete "' + this.src() + '"?')) {
                 return;
             }
             app.removeLog(this.src());
+        },
+        isActiveCategoryLog: function() {
+            var activeCategoryName = app.data.activeCategory()[0].name();
+                
+            if (!activeCategoryName || -1 == this.categories().indexOf(activeCategoryName)) {
+                return false;
+            }
+            
+            return true;
         }
     }
 }
@@ -127,7 +135,8 @@ var dataStorage = {
             {
                 'name' : 'Apache log', 
                 'src' : '/var/log/apache2/access.log', 
-                'isActive' : true
+                'isActive' : true,
+                'categories' : ['default']
             }
             ],
             categories : [ 
@@ -152,20 +161,31 @@ var dataStorage = {
     }
 }
 
+/**
+ * main app controller
+ */
 app = {
     init: function() {
-
+        /* init data storage */
         this.storage = dataStorage;
         this.storage.init();
 
-        //this.storage.clearData();
-        this.data = this.storage.loadData(); 
+        /* for debug only */
+        /* clear all saved data and start from scratch */
+        this.storage.clearData();
+        
+        /* load saved data from storage */
+        this.data = this.storage.loadData();
+        
+        /* init knockout model */
         this.initViewModel();
 
-        this.maxLogGuid = this.findMaxGuid();
-
+        /* init signal listener */
         this.listener = dataListener;
         this.listener.init();
+        
+        /* init inner bindings */ 
+        /* only save for now */
         this._bindEvents();
     },
 
@@ -219,23 +239,6 @@ app = {
         return logList;
     },
 
-    findMaxGuid : function() {
-        var guid = 1;
-        var data = ko.toJS(this.data.logs);
-        for ( var logIndex in data) {
-            if (data[logIndex]['guid']
-                && parseInt(data[logIndex]['guid'], 10) > guid) {
-                guid = parseInt(data[logIndex]['guid'], 10);
-            }
-        }
-
-        return guid;
-    },
-
-    generateLogGuid : function() {
-        return ++this.maxLogGuid;
-    },
-
     /* this method apply on socket message receive */
     update : function(data) {
         if (!data || !data.type) {
@@ -274,9 +277,9 @@ app = {
         /* XXX maybe not need due to ko */
         var logs = ko.toJS(this.data.logs);
         for (var i in logs) {
-            if (-1 != logs[i].categories.indexOf(name)) {
-                var removeIndex = logs[i].categories.indexOf(name);
-                this.data.logs[i].categories.splice(removeIndex, 1);
+            var removeIndex = logs[i].categories.indexOf(name);
+            if (-1 != removeIndex) {
+                this.data.logs()[i].categories.splice(removeIndex, 1);
             }
         }
 
@@ -328,11 +331,11 @@ app = {
     },
 
     addLog : function(form) {
-        var categoryName = $("select", form).val(),
+        var categoryNames = $("select", form).val(),
         logName =  $("#log-name", form).val(),
         logSource =  $("#log-source", form).val();
             
-        if ('' == logSource || !app.checkCategoryExist(categoryName) || app.checkLogExist(logSource)) {
+        if ('' == logSource || app.checkLogExist(logSource)) {
             return;
         }
 
@@ -340,7 +343,17 @@ app = {
             'name' : logName || logSource,
             'src' : logSource
         });
-        log.categories.push(categoryName);
+        
+        for (var key in categoryNames) {
+            if (app.checkCategoryExist( categoryNames[key] )) {
+                log.categories.push( categoryNames[key] );
+            }
+        }
+        /* no real category selected */
+        if (!log.categories().length) {
+            return;
+        }
+        
         app.data.logs.push(log);
         app.listener.follow([logSource]);
     },
