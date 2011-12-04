@@ -18,7 +18,8 @@ setup(
     packages=['logfollow'],
     scripts=['bin/logfollowd.py'],
     data_files = [
-        ('/var/logfollow', ['templates/console.html']),
+        ('/var/logfollow', ['templates/console.html', 
+                            'templates/favicon.ico']),
         ('/var/logfollow/js', ['templates/js/app.js']),
         ('/var/logfollow/css', ['templates/css/app.css'])
     ],
