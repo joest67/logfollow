@@ -50,7 +50,7 @@
                 <!-- subcategory item template -->
                 <script id="window-inactive-list" type="text/html">
                     <li data-bind="visible: !$data.isActive()">
-                        <a class="delete" href="#" class="remove" data-bind="click: $data.remove">X</a>
+                        <a class="delete" href="#" class="remove" data-bind="visible: $data.isNotDefault(), click: $data.remove">X</a>
                         <a href="#" data-bind="text: $data.name(), click: $data.setActive"></a>
                     </li>
                 </script>
@@ -63,11 +63,11 @@
 
             <!-- log item template -->
             <script id="window" type="text/html">
-                <div class="item" data-bind="visible: $data.isActiveCategoryLog()">
+                <div class="item ${$data.setErrorClass()}" data-bind="visible: $data.isActiveCategoryLog()">
                     <h5 data-bind="text: $data.name"></h5>
                     <a href="#" class="delete" data-bind="click: $data.remove">X</a>
                     <div class="body" data-bind="template: { name: 'message-item', foreach: $data.messages }"></div>
-                    <div class="status-bar"></div>
+                    <div class="status-bar" data-bind="text: $data.error"></div>
                 </div>
             </script>
             <!-- end log item template -->

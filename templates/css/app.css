@@ -250,6 +250,15 @@ aside {
    background-image:         linear-gradient(top, #9F9F9F, #777777);
 }
 
+#log-holder .item.error h5, #log-holder .error .status-bar {
+   background-image: -webkit-gradient(linear, left top, left bottom, from(#731111), to(#360606));
+   background-image: -webkit-linear-gradient(top, #731111, #360606);
+   background-image:    -moz-linear-gradient(top, #731111, #360606);
+   background-image:     -ms-linear-gradient(top, #731111, #360606);
+   background-image:      -o-linear-gradient(top, #731111, #360606);
+   background-image:         linear-gradient(top, #731111, #360606);
+}
+
 #log-holder .item h5 {
     -webkit-border-radius: 12px 12px 0 0;
     -moz-border-radius: 12px 12px 0 0;

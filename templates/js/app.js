@@ -8,6 +8,7 @@ function logItem(logObj) {
         isActive : ko.observable(logObj.isActive || true),
         messages : ko.observableArray(logObj.messages || []),
         categories : ko.observableArray(logObj.categories || []),
+        error: ko.observable(logObj.error || ''),
         remove : function() {
             if (!confirm('Are you sure you want to delete "' + this.src() + '"?')) {
                 return;
@@ -25,6 +26,9 @@ function logItem(logObj) {
             }
             
             return true;
+        },
+        setErrorClass: function() {
+            return this.error() == '' ? '' : 'error';
         }
     }
 }
@@ -44,6 +48,9 @@ function logCategory(catObj) {
         },
         setActive : function() {
             app.setActiveCategory(this.name());
+        },
+        isNotDefault: function() {
+            return this.name() == app.DEFAULT_CATEGORY_NAME ? false : true;
         }
     }
 }
@@ -54,6 +61,7 @@ var dataListener = {
     _addConstants : function() {
         this.MESSAGE_ENTRY = 'entry';
         this.MESSAGE_STATUS = 'status';
+        this.STATUS_ERROR = 'error';
     },    
     
     init : function() {
@@ -160,6 +168,7 @@ var dataStorage = {
 		
         for ( var logIndex in sanitizedObj.logs) {
             sanitizedObj.logs[logIndex]['messages'] = [];
+            sanitizedObj.logs[logIndex]['error'] = '';
         //sanitizedObj.logs[logIndex]['isActive'] = true;
         }
 
@@ -172,6 +181,9 @@ var dataStorage = {
  */
 app = {
     init: function() {
+        /* init constants */
+        this.initConstants();
+        
         /* init data storage */
         this.storage = dataStorage;
         this.storage.init();
@@ -189,6 +201,10 @@ app = {
         /* init inner bindings */ 
         /* only save for now */
         this._bindEvents();
+    },
+      
+    initConstants : function() {
+        this.DEFAULT_CATEGORY_NAME = '_default';
     },
 
     initViewModel : function() {
@@ -251,7 +267,9 @@ app = {
             this.addLogMessage(data);
         }
         
-        
+        if (data.type == dataListener.MESSAGE_ENTRY && data.status == dataListener.STATUS_ERROR) {
+            this.addLogError(data);
+        }
         
     },
 
@@ -284,6 +302,11 @@ app = {
             var removeIndex = logs[i].categories.indexOf(name);
             if (-1 != removeIndex) {
                 this.data.logs()[i].categories.splice(removeIndex, 1);
+            }
+
+            /* last category removed - move to _default */
+            if (!this.data.logs()[i].categories().length) {
+                this.data.logs()[i].categories.push(app.DEFAULT_CATEGORY_NAME);
             }
         }
 
@@ -377,7 +400,24 @@ app = {
                 for (var m in data.entries) {
                     app.data.logs()[i].messages.push(data.entries[m]);
                 }
+                /* remove error string if new entry come */
+                app.data.logs()[i].error('');
+                break;
                 
+            }
+        }
+    },
+    
+    addLogError : function(data) {
+        if (!data.log || !this.checkLogExist(data.log)) {
+            return;
+        }
+        
+        /* XXX maybe not need due to ko */
+        var logs = ko.toJS(app.data.logs);
+        for (var i in logs) {
+            if (data.log == logs[i].src) {  
+                app.data.logs()[i].error(data.description);
                 break;
                 
             }
