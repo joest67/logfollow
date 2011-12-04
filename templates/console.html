@@ -66,7 +66,6 @@
                 <div class="item" data-bind="visible: $data.isActiveCategoryLog()">
                     <h5 data-bind="text: $data.name"></h5>
                     <a href="#" class="delete" data-bind="click: $data.remove">X</a>
-                    <a href="#" class="edit" data-bind="click: $data.edit">E</a>
                     <div class="body" data-bind="template: { name: 'message-item', foreach: $data.messages }"></div>
                     <div class="status-bar"></div>
                 </div>

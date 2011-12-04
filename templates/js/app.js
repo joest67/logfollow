@@ -142,12 +142,12 @@ var dataStorage = {
                 'name' : 'Apache log', 
                 'src' : '/var/log/apache2/access.log', 
                 'isActive' : true,
-                'categories' : ['default']
+                'categories' : ['_default']
             }
             ],
             categories : [ 
             {
-                'name' : 'default', 
+                'name' : '_default', 
                 'isActive': true 
             }
             ]
@@ -394,11 +394,6 @@ app = {
         
         app.listener.unfollow([src]);
     },
-    
-    editLog : function(src) {
-        console.log(src);
-    },
-    
         
     clearAll: function() {
         if (!confirm('Are you sure you want to delete all data?')) {
