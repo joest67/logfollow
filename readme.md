@@ -55,13 +55,16 @@ Server -> Client (JSON)
 
 ## TODO
 
-1. Unit tests for basic actions and integration test for whole env
-2. Cross-platform log's listener implementation for both Linux and Mac OS
-3. Normal processing of remote logs 
-4. Plugins for directory/application listeners
-5. Filter and aggregation on client side 
-6. Configuration and customization facilities both from client and with config 
-7. ...
+0. Upgrade UI
+1. Simple way to install application
+2. Documentation and presentation site 
+3. Unit tests for basic actions and integration test for whole env
+4. Cross-platform log's listener implementation for both Linux and Mac OS
+5. Normal processing of remote logs 
+6. Export/import of client-side configurations
+7. Plugins for directory/application listeners
+8. Filter and aggregation on client side 
+9. Configuration and customization facilities both from client and with config 
     
 ## License 
 
