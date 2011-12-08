@@ -1,14 +1,24 @@
 function logItem(logObj) {
     if (!logObj.name || !logObj.src)
         return {};
+    
+    /* default options */
+    var defaults = {
+        isActive: true,
+        messages: [],
+        screens: [],
+        error: ''
+    }
+    
+    defaults = $.extend(defaults, logObj);
 
     return {
-        name : ko.observable(logObj.name),
-        src : ko.observable(logObj.src),
-        isActive : ko.observable(logObj.isActive || true),
-        messages : ko.observableArray(logObj.messages || []),
-        categories : ko.observableArray(logObj.categories || []),
-        error: ko.observable(logObj.error || ''),
+        name : ko.observable(defaults.name),
+        src : ko.observable(defaults.src),
+        isActive : ko.observable(defaults.isActive),
+        messages : ko.observableArray(defaults.messages),
+        screens : ko.observableArray(defaults.screens),
+        error: ko.observable(defaults.error),
         remove : function() {
             if (!confirm('Are you sure you want to delete "' + this.src() + '"?')) {
                 return;
@@ -18,10 +28,10 @@ function logItem(logObj) {
         edit : function() {
             app.editLog(this.src());
         },
-        isActiveCategoryLog: function() {
-            var activeCategoryName = app.data.activeCategory()[0].name();
+        isActiveScreenLog: function() {
+            var activeScreenName = app.data.activeScreen()[0].name();
                 
-            if (!activeCategoryName || -1 == this.categories().indexOf(activeCategoryName)) {
+            if (!activeScreenName || -1 == this.screens().indexOf(activeScreenName)) {
                 return false;
             }
             
@@ -33,24 +43,24 @@ function logItem(logObj) {
     }
 }
 
-function logCategory(catObj) {
-    if (!catObj.name)
+function logScreen(screenObj) {
+    if (!screenObj.name)
         return {};
 
     return {
-        name : ko.observable(catObj.name),
-        isActive : ko.observable(catObj.isActive || false),
+        name : ko.observable(screenObj.name),
+        isActive : ko.observable(screenObj.isActive || false),
         remove : function() {
-            if (!confirm('Are you sure you want to delete category "' + this.name() + '"?')) {
+            if (!confirm('Are you sure you want to delete screen "' + this.name() + '"?')) {
                 return;
             }
-            app.removeCategory(this.name());
+            app.removeScreen(this.name());
         },
         setActive : function() {
-            app.setActiveCategory(this.name());
+            app.setActiveScreen(this.name());
         },
         isNotDefault: function() {
-            return this.name() == app.DEFAULT_CATEGORY_NAME ? false : true;
+            return this.name() == app.DEFAULT_SCREEN_NAME ? false : true;
         }
     }
 }
@@ -150,10 +160,10 @@ var dataStorage = {
                 'name' : 'Apache log', 
                 'src' : '/var/log/apache2/access.log', 
                 'isActive' : true,
-                'categories' : ['_default']
+                'screens' : ['_default']
             }
             ],
-            categories : [ 
+            screens : [ 
             {
                 'name' : '_default', 
                 'isActive': true 
@@ -204,7 +214,7 @@ app = {
     },
       
     initConstants : function() {
-        this.DEFAULT_CATEGORY_NAME = '_default';
+        this.DEFAULT_SCREEN_NAME = '_default';
     },
 
     initViewModel : function() {
@@ -216,9 +226,9 @@ app = {
                     return new logItem(options.data);
                 }
             },
-            'categories': {
+            'screens': {
                 create: function(options) {
-                    return new logCategory(options.data);
+                    return new logScreen(options.data);
                 }
             }
         }
@@ -228,12 +238,12 @@ app = {
         this.data.staticText = {
             greeting : "Hello, you are new here. Add your first log below",
             addLogMessage : "Add new log",
-            addCategoryMessage : "Add new category"
+            addScreenMessage : "Add new screen"
         };
         
-        this.data.activeCategory = ko.dependentObservable(function() {
-            return ko.utils.arrayFilter(hoc.data.categories(), function(category) {
-                return category.isActive() == true;
+        this.data.activeScreen = ko.dependentObservable(function() {
+            return ko.utils.arrayFilter(hoc.data.screens(), function(screen) {
+                return screen.isActive() == true;
             });
         }, this.data);
         
@@ -273,53 +283,79 @@ app = {
         
     },
 
-    addCategory : function(form) {
-        var catName =  $("#category-name", form).val();
-        if ('' == catName || app.checkCategoryExist(catName)) {
+    addScreen : function(form) {
+        var screenName =  $("#screen-name", form).val();
+        if ('' == screenName || app.checkScreenExist(screenName)) {
             return;
         }
 
-        var cat = new logCategory({
-            'name' : catName
+        var screen = new logScreen({
+            'name' : screenName
         });
 
-        app.data.categories.push(cat);
+        app.data.screens.push(screen);
         
+        /* clear the form after item add */
         $("input[type=text], select", form).val('');
     },
 
-    removeCategory : function(name) {
-        var categories = ko.toJS(this.data.categories);
-        for (var i in categories) {
-            if (categories[i].name == name) {
-                this.data.categories.splice(i, 1);
+    removeScreen : function(name) {
+        var screens = ko.toJS(this.data.screens);
+        for (var i in screens) {
+            if (screens[i].name == name) {
+                this.data.screens.splice(i, 1);
             }
         }
 		
         /* XXX maybe not need due to ko */
         var logs = ko.toJS(this.data.logs);
         for (var i in logs) {
-            var removeIndex = logs[i].categories.indexOf(name);
+            var removeIndex = logs[i].screens.indexOf(name);
             if (-1 != removeIndex) {
-                this.data.logs()[i].categories.splice(removeIndex, 1);
+                this.data.logs()[i].screens.splice(removeIndex, 1);
             }
 
-            /* last category removed - move to _default */
-            if (!this.data.logs()[i].categories().length) {
-                this.data.logs()[i].categories.push(app.DEFAULT_CATEGORY_NAME);
+            /* last screen removed - move to _default */
+            if (!this.data.logs()[i].screens().length) {
+                this.data.logs()[i].screens.push(app.DEFAULT_SCREEN_NAME);
             }
         }
 
     },
 	
-    checkCategoryExist: function(name) {
-        var categories = ko.toJS(this.data.categories);
-        for (var i in categories) {
-            if (categories[i].name == name) {
+    checkScreenExist: function(name) {
+        var screens = ko.toJS(this.data.screens);
+        for (var i in screens) {
+            if (screens[i].name == name) {
                 return true;
             }
         }
         return false;
+    },   
+    
+    setActiveScreen : function(name) {
+        var screens = ko.toJS(this.data.screens), 
+        newActiveIndex = -1,
+        oldActiveIndex = -1;
+		
+        for (var i in screens) {
+            if (screens[i].name == name) {
+                newActiveIndex = i;
+            }
+			
+            if (screens[i].isActive) {
+                oldActiveIndex = i;
+            }
+        }
+		
+        /* XXX ko should make it automatically */
+        if (-1 != newActiveIndex && newActiveIndex != oldActiveIndex ) {
+            this.data.screens()[newActiveIndex].isActive(true);
+            
+            if (-1 != oldActiveIndex) {
+                this.data.screens()[oldActiveIndex].isActive(false);
+            } 
+        }
     },
     
     checkLogExist: function(source) {
@@ -332,33 +368,8 @@ app = {
         return false;
     },
 
-    setActiveCategory : function(name) {
-        var categories = ko.toJS(this.data.categories), 
-        newActiveIndex = -1,
-        oldActiveIndex = -1;
-		
-        for (var i in categories) {
-            if (categories[i].name == name) {
-                newActiveIndex = i;
-            }
-			
-            if (categories[i].isActive) {
-                oldActiveIndex = i;
-            }
-        }
-		
-        /* XXX ko should make it automatically */
-        if (-1 != newActiveIndex && newActiveIndex != oldActiveIndex ) {
-            this.data.categories()[newActiveIndex].isActive(true);
-            
-            if (-1 != oldActiveIndex) {
-                this.data.categories()[oldActiveIndex].isActive(false);
-            } 
-        }
-    },
-
     addLog : function(form) {
-        var categoryNames = $("select", form).val(),
+        var screenNames = $("select", form).val(),
         logName =  $("#log-name", form).val(),
         logSource =  $("#log-source", form).val();
             
@@ -371,13 +382,13 @@ app = {
             'src' : logSource
         });
         
-        for (var key in categoryNames) {
-            if (app.checkCategoryExist( categoryNames[key] )) {
-                log.categories.push( categoryNames[key] );
+        for (var key in screenNames) {
+            if (app.checkScreenExist( screenNames[key] )) {
+                log.screens.push( screenNames[key] );
             }
         }
-        /* no real category selected */
-        if (!log.categories().length) {
+
+        if (!log.screens().length) {
             return;
         }
 
@@ -462,10 +473,10 @@ app = {
             $('#log-form-holder').show();
         });
         
-        $('#showAddCategory').click(function(e) {
+        $('#showAddScreen').click(function(e) {
             e.preventDefault();
             $('.overlay').hide();
-            $('#category-form-holder').show();
+            $('#screen-form-holder').show();
         });
         
         $('.holder .close').click(function(e) {

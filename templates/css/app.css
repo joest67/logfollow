@@ -137,7 +137,7 @@ aside {
     z-index: 10;
 }
 
-.subCategories {
+.screens {
     margin: 0;
     padding: 0 20px;
     height: 350px;
@@ -145,7 +145,7 @@ aside {
     list-style: none;
 }
 
-.subCategories li {
+.screens li {
     position: relative;
     padding: 10px 30px 10px 15px;
     margin-bottom: 10px;
@@ -160,18 +160,18 @@ aside {
     box-shadow: inset rgba(255,255,255,0.2) 8px 8px 18px 5px, inset rgba(125,125,125,0.5) -8px -8px 18px 5px;
 }
 
-.subCategories a {
+.screens a {
     color: #ccc;
     text-decoration: none;
 }
 
-.subCategories .delete {
+.screens .delete {
     position: absolute;
     top: 8px;
     right: 6px;
 }
 
-#activeCategory {
+#activeScreen {
     text-align: right;
     position: relative;
     left: 3px;
@@ -349,7 +349,7 @@ aside {
    background-image:         linear-gradient(top, #333333, #555555);
 }
 
-#category-form-holder .holder {
+#screen-form-holder .holder {
     padding: 10px; 
     width: 200px; 
     margin-left: -100px; 
