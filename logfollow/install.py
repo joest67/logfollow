@@ -25,6 +25,9 @@ class StaticFilesUploader(Command):
         ('Knockout Mapping',
          'https://raw.github.com/SteveSanderson/knockout.mapping/2.0.1/build/knockout.mapping.js',
          'knockout.mapping.js'),
+        ('Isotope',
+         'https://raw.github.com/desandro/isotope/master/jquery.isotope.min.js',
+         'jquery.isotope.js')
     ]
     
     description = "Upload necessary JS and CSS scripts from CDN"
