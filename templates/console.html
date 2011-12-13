@@ -33,9 +33,6 @@
                     <a href="#" id="showAddForm">Add log</a>
                 </li>
                 <li>
-                    <a href="#" id="showAddScreen">Add screen</a>
-                </li>
-                <li>
                     <a href="#" data-bind="click: app.clearAll">Clear all saved data</a>
                 </li>
             </ul>
@@ -44,17 +41,22 @@
             
             <!-- contain screens -->
             <aside>
-                <h3 id="activeScreen" data-bind="text: app.data.activeScreen()[0].name()"></h3>
-                
                 
                 <ul class="screens" data-bind="template: { name: 'window-inactive-list', foreach:screens}"></ul>
+                <a href="#" id="showAddScreen">Add New Screen</a>
 
                 <!-- screen item template -->
                 <script id="window-inactive-list" type="text/html">
-                    <li data-bind="visible: !$data.isActive()">
+                    {% raw '{{' %}if  $data.isActive(){% raw '}}' %}
+                    <li class="active">
+                        <a href="#" data-bind="text: $data.name()"></a>
+                    </li>
+                    {% raw '{{' %}else{% raw '}}' %}
+                    <li>
                         <a class="delete" href="#" class="remove" data-bind="visible: $data.isNotDefault(), click: $data.remove">X</a>
                         <a href="#" data-bind="text: $data.name(), click: $data.setActive"></a>
                     </li>
+                    {% raw '{{' %}/if{% raw '}}' %}
                 </script>
                 <!-- end screen item -->
                 
