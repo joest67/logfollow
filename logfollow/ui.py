@@ -1,3 +1,5 @@
+"""UI modules for Tornado template engine"""
+
 import os.path
 import logging
 
@@ -19,4 +21,3 @@ class LocalCopy(UIModule):
                 return script[1]
 
         raise ValueError('Try to load unknown file: %s', p)
-

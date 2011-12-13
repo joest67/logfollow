@@ -1,3 +1,5 @@
+"""Additional commands for setuptools script"""
+
 import os 
 import os.path
 
@@ -44,4 +46,3 @@ class StaticFilesUploader(Command):
         for script in self.scripts:
             print 'Uploading %s ...' % script[0]
             os.system('wget -O %s - %s' % (static('js', script[2]), script[1]))
-

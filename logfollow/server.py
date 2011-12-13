@@ -24,8 +24,9 @@ from logfollow.protocol import Message
 def pipe(commands):
     """Communicate given list of process into one pipe"""
     def into(r, el):
-        return subprocess.Popen(el, stdout=subprocess.PIPE, shell=True, 
-                                 stdin=(r.stdout if r else None))    
+        return subprocess.Popen(el, shell=True,
+                                stdin=(r.stdout if r else None),  
+                                stdout=subprocess.PIPE)    
 
     return reduce(into, commands, None)
 
@@ -42,8 +43,18 @@ class LogStreamer(object):
         identity and filepath (on remote machine). So, both of this variants:
         /var/log/nginx/access.log and user@host:/var/log/nginx/access.log
         will be valid.
+
+        It's also possible to use pluging prefixes in path. For ex., you 
+        can specify path as "DIR /var/log/nginx" and it will add to following
+        listing all log files from given directory. Full list of supported 
+        plugins are defined by methods of PathResolver class or any other 
+        added function/lambda to plugins dictionary.
         """
-    
+        for item in cls._resolve_plugin(path):
+            cls._follow_item(item, follower)
+
+    @classmethod
+    def _follow_item(cls, path, follower):
         if path in cls.streams:
             cls.streams[path]['followers'].add(follower)
         else:
@@ -61,6 +72,21 @@ class LogStreamer(object):
         # Send notification to user 
         follower.send(str(Message.FollowOk(path)))
         return True
+
+    @classmethod
+    def _resolve_plugin(cls, path):
+        """Should also return iterable object"""
+        if not path.count(' '):
+            return [path]
+        
+        pluging, item = path.split(' ', 1)
+        try: 
+            resolver = getattr(PathResolver, plugin.lower())
+        except AttributeError:
+            return [path]
+        else:
+            items = resolver(item)
+            return [items] if type(items) == str else items
 
     @classmethod
     def _run(cls, path):
@@ -127,6 +153,31 @@ class LogStreamer(object):
         logging.info('Start streaming %s with %s', path, [tail, nc])
         return tail, nc
 
+class PathResolver(object):
+    """List of plugins for resolving given path to log"""
+
+    @staticmethod
+    def dir(path):
+        """Get list of files from directory given in path param.
+
+        This plugin should ignore all files, which ends with figure
+        (for ex., *.1, *.2 etc) cause of log rotating results. To support 
+        hierarchy in files/directory you should rewrite this method as well.
+        """
+        logs = []
+        try:
+            for root, dirs, files in os.walk(path)
+                for log in files:
+                    try:
+                        int(log.split('.')[-1]) 
+                    except (ValueError, IndexError):
+                        logs.append(os.path.join(root, log))
+        except OSError:
+            # TODO: Add here something like "plugin resolving error"
+            raise 
+        else: 
+            return logs        
+
 class LogServer(TCPServer):
     """Handle incoming TCP connections from log pusher clients"""
 
@@ -149,12 +200,8 @@ class LogConnection(object):
         self.address = address
         self.server = server
 
-        self._disconnect_callback = stack_context.wrap(self._on_disconnect)
-        self.stream.set_close_callback(self._disconnect_callback)
-
-        self._read_callback = stack_context.wrap(self._on_read)
-        self._head_callback = stack_context.wrap(self._on_head)
-        self.stream.read_until(b("\n"), self._head_callback)
+        self.stream.set_close_callback(self._on_disconnect)
+        self.stream.read_until(b("\n"), self._on_head)
 
 
     def _on_head(self, line):
@@ -184,14 +231,14 @@ class LogConnection(object):
 
     def wait(self):
         """Read from stream until the next signed end of line"""
-        self.stream.read_until(b("\n"), self._read_callback)
+        self.stream.read_until(b("\n"), self._on_read)
 
     def _on_disconnect(self, *args, **kwargs):
-        logging.info('Client disconnected %r', self.address)
+        logging.info('Log streamer disconnected %s', self)
         try:
             self.__class__.logs.remove(str(self))
         except KeyError:
-            logging.warning('Try to remove illegal or undefined log')
+            logging.warning('Try to remove undefined log %s', self)
 
     def __str__(self):
         """Build string representation, will be used for working with
@@ -202,9 +249,10 @@ class DashboardHandler(RequestHandler):
     """Render HTML page with user's dashboard"""
 
     def get(self):
-        self.render(os.path.join(self.application.options.templates, 
-                                 'console.html'),
-                     **self.application.settings)
+        self.render(
+            os.path.join(self.application.options.templates, 'console.html'),
+            **self.application.settings
+         )
         
 class ClientConnection(SocketConnection):
     clients = set()
@@ -272,8 +320,7 @@ class LogTracer(Application):
         super(LogTracer, self).__init__([
             # Static files handling is necessary only for working with 
             # js/css files uploaded to local machine with using install script
-            (r"/static/(.*)", StaticFileHandler, 
-                dict(path=options.templates)),
+            (r"/static/(.*)", StaticFileHandler, dict(path=options.templates)),
             (r"/", DashboardHandler),
             # Routes for working with WebSocket handlers and imitators 
             get_router(ClientConnection).route()

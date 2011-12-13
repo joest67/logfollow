@@ -27,5 +27,5 @@ class Message:
     
         def __init__(self, path, reason):
             self.__dict__ = dict(type = 'status', log = path, status = 'ERROR', 
-                                  description = str(reason))
+                                 description = str(reason))
 
