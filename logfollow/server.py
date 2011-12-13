@@ -166,7 +166,7 @@ class PathResolver(object):
         """
         logs = []
         try:
-            for root, dirs, files in os.walk(path)
+            for root, dirs, files in os.walk(path):
                 for log in files:
                     try:
                         int(log.split('.')[-1]) 
