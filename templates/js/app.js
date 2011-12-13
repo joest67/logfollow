@@ -394,9 +394,13 @@ app = {
 
         $("input[type=text]", form).val('');
         
-        app.data.logs.push(log);
-        app.listener.follow([logSource]); 
         
+        
+        app.data.logs.push(log);
+        app.listener.follow([logSource]);
+        
+        $('#log-holder').isotope('reloadItems').isotope({sortBy: "original-order"});
+              
     },
 
     addLogMessage : function(data) {
@@ -444,6 +448,7 @@ app = {
         }
         
         app.listener.unfollow([src]);
+        $('#log-holder').isotope('reLayout');
     },
         
     clearAll: function() {
@@ -482,6 +487,12 @@ app = {
         $('.holder .close').click(function(e) {
             e.preventDefault();
             $('.overlay').hide();
-        })
+        });
+        
+        /* add isotope */            
+        $('#log-holder').isotope({
+            itemSelector : '.item',
+            layoutMode : 'fitRows'
+        });
     }
 }
