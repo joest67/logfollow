@@ -50,7 +50,7 @@ class LogStreamer(object):
         plugins are defined by methods of PathResolver class or any other 
         added function/lambda to plugins dictionary.
         """
-        for item in cls._resolve_plugin(path):
+        for item in PathResolver.resolve(path):
             cls._follow_item(item, follower)
 
     @classmethod
@@ -74,28 +74,25 @@ class LogStreamer(object):
         return True
 
     @classmethod
-    def _resolve_plugin(cls, path):
-        """Should also return iterable object"""
-        if not path.count(' '):
-            return [path]
-        
-        pluging, item = path.split(' ', 1)
-        try: 
-            resolver = getattr(PathResolver, plugin.lower())
-        except AttributeError:
-            return [path]
-        else:
-            items = resolver(item)
-            return [items] if type(items) == str else items
-
-    @classmethod
     def _run(cls, path):
         """Save subprocess PID in order to check periodicaly"""
         return pipe(cls._command(path)).pid
         
     @classmethod
     def unfollow(cls, path, follower):
-        """Remove client from list of followers"""
+        """Remove client from list of followers.
+
+        We should keep in mind that follow/unfollow methods are
+        separated in time, so we can catch error with different 
+        results of resolving path on start and on finish. To 
+        avoid this it's necessary to track base command and resolving
+        results on following.
+        """
+        for item in PathResolver.resolve(path):
+            cls._unfollow_item(item, follower)
+
+    @classmethod
+    def _unfollow_item(cls, path, follower):
         try:
             cls.streams[path]['followers'].remove(follower)
         except (KeyError, TypeError):
@@ -115,7 +112,8 @@ class LogStreamer(object):
         """Restart streaming process for given path"""
         if path in cls.streams and not cls.streams[path].get('is_restarting', False):
             # Timeout will be changed from 1 to 32 seconds
-            deadline = time.time() + 2 ** min(cls.streams[path].get('restart', 0), 5)
+            deadline = (time.time() + 
+                2 ** min(cls.streams[path].get('restart', 0), 5))
 
             cls.streams[path]['is_restarting'] = True
             cls.streams[path]['restart'] += 1
@@ -163,6 +161,10 @@ class PathResolver(object):
         This plugin should ignore all files, which ends with figure
         (for ex., *.1, *.2 etc) cause of log rotating results. To support 
         hierarchy in files/directory you should rewrite this method as well.
+
+        We should also add here method for periodical checking of new 
+        files in directory (it's not always necessary, but ignoring this 
+        fact can be unpredictable for users).
         """
         logs = []
         try:
@@ -176,7 +178,23 @@ class PathResolver(object):
             # TODO: Add here something like "plugin resolving error"
             raise 
         else: 
-            return logs        
+            return logs
+
+    @classmethod
+    def resolve(cls, path):
+        """Should also return iterable object"""
+        if not path.count(' '):
+            return [path]
+        
+        plugin, item = path.split(' ', 1)
+        try: 
+            # TODO: Possbile we will add other way to init plugin
+            resolver = getattr(cls, plugin.lower())
+        except AttributeError:
+            return [path]
+        else:
+            items = resolver(item)
+            return [items] if type(items) == str else items
 
 class LogServer(TCPServer):
     """Handle incoming TCP connections from log pusher clients"""
