@@ -1,5 +1,7 @@
 """Abstractions for handling and processing client/server messages"""
 
+import time
+
 from tornado.escape import json_encode
 
 class Message:
@@ -35,8 +37,7 @@ class Message:
         __slots__ = ('type', 'entries', 'log', 'time')
 
         def __init__(self, log, entries):
-            self.__dict__ = dict(type = 'entry', 
-                                 log = str(log), 
+            self.__dict__ = dict(type = 'entry', log = str(log), 
                                  entries = map(str, list(entries)), 
                                  time=time.time())
 
