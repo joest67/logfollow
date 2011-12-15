@@ -29,3 +29,15 @@ class Message:
             self.__dict__ = dict(type = 'status', log = path, status = 'ERROR', 
                                  description = str(reason))
 
+    class LogEntry(Jsonable):
+        """Represenration for message with log entries"""
+
+        __slots__ = ('type', 'entries', 'log', 'time')
+
+        def __init__(self, log, entries):
+            self.__dict__ = dict(type = 'entry', 
+                                 log = str(log), 
+                                 entries = map(str, list(entries)), 
+                                 time=time.time())
+
+        

@@ -61,7 +61,8 @@ class LogStreamer(object):
             try:
                 # Check file's validity to work with
                 with open(path):
-                    cls.streams[path] = dict(pid=cls._run(path), restart=0,
+                    cls.streams[path] = dict(pid=cls._run(path), 
+                                             restart=0,
                                              followers=set([follower]))
             except (IOError, OSError), e:
                 # Send error notification to user
@@ -242,9 +243,7 @@ class LogConnection(object):
 
     def _on_read(self, line):
         """Called when new line received from connection"""
-        protocol = dict(type = 'entry', entries = [line.strip()],
-                        log = str(self), time=time.time())
-        ClientConnection.broadcast(protocol)
+        ClientConnection.broadcast(Message.LogEntry(self, [line.strip()]))
         self.wait()
 
     def wait(self):
