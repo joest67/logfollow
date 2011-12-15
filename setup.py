@@ -16,7 +16,7 @@ setup(
     dependency_links = [],
     install_requires=['tornado==2.1.1','tornadio'],
     packages=['logfollow'],
-    scripts=['bin/logfollowd.py'],
+    scripts=['bin/logfollowd.py', 'bin/logfollowctl.py'],
     data_files = [
         ('/var/logfollow', ['templates/console.html', 
                             'templates/favicon.ico']),

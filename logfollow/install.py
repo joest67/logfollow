@@ -42,7 +42,12 @@ class StaticFilesUploader(Command):
         pass
 
     def run(self):
+        """Wrapper function for calling from distutils installer"""
+        self.__class__.upload()
+    
+    @classmethod
+    def upload(cls):
         """Upload scripts and styles to local directory"""
-        for script in self.scripts:
+        for script in cls.scripts:
             print 'Uploading %s ...' % script[0]
             os.system('wget -O %s - %s' % (static('js', script[2]), script[1]))
