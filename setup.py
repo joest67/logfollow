@@ -1,5 +1,11 @@
 #!/usr/bin/env python
 
+import os
+import functools
+
+here  = lambda x: os.path.join(os.path.abspath(os.path.dirname(__file__)), x)
+files = lambda x: map(functools.partial(os.path.join, x), os.listdir(here(x)))
+
 try:
     from setuptools import setup
 except ImportError, e:
@@ -21,7 +27,8 @@ setup(
         ('/var/logfollow', ['templates/console.html', 
                             'templates/favicon.ico']),
         ('/var/logfollow/js', ['templates/js/app.js']),
-        ('/var/logfollow/css', ['templates/css/app.css'])
+        ('/var/logfollow/css', ['templates/css/app.css']),
+        ('/var/logfollow/images', files('templates/images/'))
     ],
     include_package_data=True,
     entry_points = {
