@@ -15,14 +15,22 @@ except ImportError, e:
 
 setup(
     name='logfollow-server',
-    version='0.0.4',
-    description='Web monitor for server logs',
+    version='0.0.5',
+    description='Real-time Web Monitor for server logs',
     author='Alexey S. Kachayev',
     author_email='kachayev@gmail.com',
-    dependency_links = [],
-    install_requires=['tornado==2.1.1','tornadio'],
+    dependency_links = [
+        'https://github.com/MrJoes/sockjs-tornado/zipball/master#egg=sockjs-tornado-0.0.1'
+    ],
+    install_requires=[
+        'tornado>=2.1.1',
+        'sockjs-tornado>=0.0.1'
+    ],
     packages=['logfollow'],
-    scripts=['bin/logfollowd.py', 'bin/logfollowctl.py'],
+    scripts=[
+        'bin/logfollowd.py', 
+        'bin/logfollowctl.py'
+    ],
     data_files = [
         ('/var/logfollow', ['templates/console.html', 
                             'templates/favicon.ico']),

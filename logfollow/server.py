@@ -2,7 +2,6 @@
 
 import os
 import subprocess
-import os.path
 import socket
 import logging
 import time
@@ -17,7 +16,8 @@ from tornado.escape import json_encode, json_decode
 from tornado.util import b, bytes_type
 from tornado.options import options
 
-from tornadio import server, get_router, SocketConnection
+from sockjs.tornado import SockJSRouter, SockJSConnection
+
 from logfollow import ui
 from logfollow.protocol import Message
 
@@ -271,7 +271,7 @@ class DashboardHandler(RequestHandler):
             **self.application.settings
          )
         
-class ClientConnection(SocketConnection):
+class ClientConnection(SockJSConnection):
     clients = set()
 
     def __init__(self, *args, **kwargs):
@@ -284,8 +284,8 @@ class ClientConnection(SocketConnection):
         """Send JSON encoded message to all connected clients"""
         logging.debug('Broadcasting: %s', message)
         for client in cls.clients:
-            if message['log'] in client.follow:
-                client.send(message)
+            if message.log in client.follow:
+                client.send(str(message))
 
     def on_open(self, request, *args, **kwargs):
         """Called when new connection from client created"""
@@ -296,7 +296,7 @@ class ClientConnection(SocketConnection):
     def on_message(self, message):
         """Called when protocol package received from client"""
         logging.info('Received from client: %s', message)
-        self._command(message)
+        self._command(json_decode(message))
 
     def on_close(self):
         """Called when connection is closed"""
@@ -331,14 +331,12 @@ class LogTracer(Application):
     def __init__(self, options):
         self.options = options
         settings = dict(debug=options.debug, 
-                        socket_io_port=options.port, 
+                        socket_port=options.port, 
                         ui_modules=ui)
-                        
+            
         super(LogTracer, self).__init__([
             # Static files handling is necessary only for working with 
             # js/css files uploaded to local machine with using install script
             (r"/static/(.*)", StaticFileHandler, dict(path=options.templates)),
             (r"/", DashboardHandler),
-            # Routes for working with WebSocket handlers and imitators 
-            get_router(ClientConnection).route()
-        ], **settings)
+        ] + SockJSRouter(ClientConnection, '/logs').urls, **settings)

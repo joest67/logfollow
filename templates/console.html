@@ -3,7 +3,7 @@
     <head>
         <link rel="stylesheet" type="text/css" href="{% module LocalCopy('/css/app.css') %}" />
         <script type="text/javascript"
-        src="{% module LocalCopy('/js/socket.io.js') %}"></script>
+        src="{% module LocalCopy('/js/sockjs.js') %}"></script>
         <script type="text/javascript"
         src="{% module LocalCopy('/js/jquery.min.js') %}"></script>
         <script type="text/javascript"
@@ -19,7 +19,7 @@
     <script type="text/javascript">
         settings = {
             io: {
-                port: {{ socket_io_port }},
+                port: {{ socket_port }},
                 host: window.location.hostname
             }
         };

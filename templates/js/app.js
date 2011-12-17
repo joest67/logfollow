@@ -79,31 +79,34 @@ var dataListener = {
         
         this._addConstants();
 
-        this.listener = new io.Socket(settings.io.host, {
-            port : settings.io.port,
-            rememberTransport : false
-        });
-
-        /* XXX app method call */
-        this.listener.addEvent('connect', function(e) {
-            hoc.follow(app.getLogList());
-        });
-
-        this.bindEvents();
         this.connect();
+        this.bindEvents();
     },
 
     connect : function() {
-        this.listener.connect();
+        // TODO: Avoid this terrible hard code...
+        var url = 'http://' + settings.io.host + ':8001/logs';
+        this.listener = new SockJS(url);
     },
 
     bindEvents : function() {
         var hoc = this;
 
-        /* XXX app method call */
-        this.listener.addEvent('message', function(data) {
-            app.update(data);
-        });
+        this.listener.onopen = function(e) {
+            hoc.follow(app.getLogList());
+        };
+
+        this.listener.onmessage = function(m) {
+            // TODO: Error handling?
+            if (m.type == 'message') {
+                app.update(JSON.parse(m.data));
+            }
+        };
+
+        // TODO: Implement front-end logic for server disconnect
+        // this.listener.onclose = function() {
+        //   this.listener = null;
+        // };
     },
 
     follow : function(logs) {
@@ -125,10 +128,10 @@ var dataListener = {
     },
 
     _push : function(command, logs) {
-        this.listener.send({
+        this.listener.send(JSON.stringify({
             'command' : command,
             'logs' : logs
-        });
+        }));
     }
 }
 
