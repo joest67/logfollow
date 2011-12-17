@@ -19,8 +19,7 @@
     <script type="text/javascript">
         settings = {
             io: {
-                port: {{ socket_port }},
-                host: window.location.hostname
+                host: 'http://' + window.location.hostname + ':{{ socket_port }}/{{ socket_handler }}'
             }
         };
     </script>

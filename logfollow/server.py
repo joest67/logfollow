@@ -332,6 +332,7 @@ class LogTracer(Application):
         self.options = options
         settings = dict(debug=options.debug, 
                         socket_port=options.port, 
+                        socket_handler=options.socket_handler,
                         ui_modules=ui)
             
         super(LogTracer, self).__init__([
@@ -339,4 +340,5 @@ class LogTracer(Application):
             # js/css files uploaded to local machine with using install script
             (r"/static/(.*)", StaticFileHandler, dict(path=options.templates)),
             (r"/", DashboardHandler),
-        ] + SockJSRouter(ClientConnection, '/logs').urls, **settings)
+        ] + SockJSRouter(ClientConnection, '/'+options.socket_handler).urls, 
+        **settings)

@@ -46,6 +46,7 @@ def shutdown():
 
 define('debug', default=True, type=bool)
 define('port', default=8001, type=int)
+define('socket_handler', default='logs', type=str)
 define('gateway', default=6777, type=int)
 define('templates', default=install.STATIC_DIR, type=str)
 

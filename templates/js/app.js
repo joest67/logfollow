@@ -84,9 +84,7 @@ var dataListener = {
     },
 
     connect : function() {
-        // TODO: Avoid this terrible hard code...
-        var url = 'http://' + settings.io.host + ':8001/logs';
-        this.listener = new SockJS(url);
+        this.listener = new SockJS(settings.io.host);
     },
 
     bindEvents : function() {
