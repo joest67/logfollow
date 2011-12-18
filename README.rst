@@ -18,11 +18,11 @@ Features
 Install
 -------
 
-Using ``PyPI`` package
+Using ``PyPI`` package::
 
     sudo easy_install logfollow-server
 
-Install from source
+Install from source::
 
     # get the sources
     git clone git@github.com:kachayev/logfollow.git 
@@ -32,30 +32,30 @@ Install from source
 Launch
 ------
 
-Start HTTP server:
+Start HTTP server::
 
     logfollowd.py
 
 By default ``logfollowd.py`` server will listen 8001 port, by use can 
 specify other port with ``--port`` param. Full list of launching params,
-you can find in help message:
+you can find in help message::
 
     logfollowd.py --help
 
 In order to use util without internet connection you have to upload all 
-necessary JS libraries from CDNs. This can be done:
+necessary JS libraries from CDNs. This can be done::
 
     logfollowctl.py upload_scripts
 
-Running under `supervisor<http://supervisord.org/>`:
+Running under `supervisor <http://supervisord.org/>`_::
 
-TBD
+    TBD
 
 Contributors
 ------------
 
-- `Alexey S. Kachayev<https://github.com/kachayev>`_
-- `Vitaliy Vilyay<https://github.com/VitalVil>`_
+- `Alexey S. Kachayev <https://github.com/kachayev>`_
+- `Vitaliy Vilyay <https://github.com/VitalVil>`_
 
 TODO
 ----
@@ -71,4 +71,4 @@ License
 -------
 
 Licensed under the Apache 2.0 License. 
-See `license<https://github.com/kachayev/logfollow/blob/master/LICENSE>`_ in source code.
+See `license <https://github.com/kachayev/logfollow/blob/master/LICENSE>`_ in source code.
