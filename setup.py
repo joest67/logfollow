@@ -13,10 +13,23 @@ except ImportError, e:
     use_setuptools()
     from setuptools import setup
 
+try:
+    license = open('LICENSE').read()
+except:
+    license = None
+
+try:
+    readme = open('README.rst').read()
+except:
+    readme = None
+
 setup(
     name='logfollow-server',
-    version='0.0.5',
-    description='Real-time Web Monitor for server logs',
+    version='0.0.6',
+    description='Real-time Web Monitor for your logs',
+    long_description=readme,
+    license=license,
+    url='https://github.com/kachayev/logfollow',
     author='Alexey S. Kachayev',
     author_email='kachayev@gmail.com',
     dependency_links = [
@@ -26,7 +39,9 @@ setup(
         'tornado>=2.1.1',
         'sockjs-tornado>=0.0.1'
     ],
-    packages=['logfollow'],
+    packages=[
+        'logfollow'
+    ],
     scripts=[
         'bin/logfollowd.py', 
         'bin/logfollowctl.py'
