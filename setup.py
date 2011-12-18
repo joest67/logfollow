@@ -20,7 +20,7 @@ setup(
     author='Alexey S. Kachayev',
     author_email='kachayev@gmail.com',
     dependency_links = [
-        'https://github.com/kachayev/sockjs-tornado/zipball/master#egg=sockjs-tornado-0.0.1'
+        'https://github.com/MrJoes/sockjs-tornado/zipball/master#egg=sockjs-tornado-0.0.1'
     ],
     install_requires=[
         'tornado>=2.1.1',
