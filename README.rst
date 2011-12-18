@@ -24,7 +24,6 @@ Using ``PyPI`` package::
 
 Install from source::
 
-    # get the sources
     git clone git@github.com:kachayev/logfollow.git 
     sudo python setup.py install
     sudo python setup.py upload_scripts
