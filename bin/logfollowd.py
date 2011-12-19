@@ -16,12 +16,14 @@ def start():
     io_loop = ioloop.IOLoop.instance()
 
     io_loop.tcp_server = LogServer(io_loop=io_loop)
-    io_loop.tcp_server.listen(options.gateway, options.host)
-    logging.info('Start TCP server on %s:%s', options.host, options.gateway)
+    io_loop.tcp_server.listen(options.gateway_port, options.gateway_host)
+    logging.info('Start TCP server on %s:%s',
+                 options.gateway_host, options.gateway_port)
 
-    logging.info('Start Websocket server on %s port', options.port)
     app = LogTracer(options)
     app.listen(options.port, address=options.host)
+    logging.info('Start Websocket server on %s:%s',
+                 options.host, options.port)
 
     # Starting infinite I/O loop
     io_loop.start()
@@ -47,9 +49,10 @@ def shutdown():
     logging.debug('IO loop will be stopped in 2 seconds ...')
 
 define('debug', default=True, type=bool)
-define('port', default=8001, type=int)
 define('host', default='127.0.0.1', type=str)
-define('gateway', default=6777, type=int)
+define('port', default=8001, type=int)
+define('gateway_host', default='127.0.0.1', type=str)
+define('gateway_port', default=6777, type=int)
 define('templates', default=install.STATIC_DIR, type=str)
 
 if __name__ == '__main__':
