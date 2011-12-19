@@ -143,7 +143,8 @@ class LogStreamer(object):
         Auto checking of ssh keys validity or even facilities to provide 
         auth parameters from client side, will be add during next iterations.
         """
-        nc = "nc 127.0.0.1 %d" % options.gateway
+        nc = "nc {host} {gateway}".format(host=options.host, 
+                                          gateway=options.gateway) 
         if not path.count(':'):
             tail = 'tail -f -v %s' % path
         else:

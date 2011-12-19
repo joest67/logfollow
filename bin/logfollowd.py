@@ -8,8 +8,6 @@ from functools import partial
 
 from tornado import ioloop
 from tornado.options import define, options, parse_command_line
-
-from tornadio import server
 from logfollow import install
 from logfollow.server import LogServer, LogTracer
 
@@ -18,11 +16,15 @@ def start():
     io_loop = ioloop.IOLoop.instance()
 
     io_loop.tcp_server = LogServer(io_loop=io_loop)
-    io_loop.tcp_server.listen(options.gateway)
-    logging.info('Start TCP server on %r port', options.gateway)
+    io_loop.tcp_server.listen(options.gateway, options.host)
+    logging.info('Start TCP server on %s:%s', options.host, options.gateway)
 
-    logging.info('Start Websocket server on %r port', options.port)
-    server.SocketServer(LogTracer(options), io_loop=io_loop)
+    logging.info('Start Websocket server on %s port', options.port)
+    app = LogTracer(options)
+    app.listen(options.port, address=options.host)
+
+    # Starting infinite I/O loop
+    io_loop.start()
 
 def catch_signal(signal, frame):
     """Catcher for system signals
@@ -46,12 +48,18 @@ def shutdown():
 
 define('debug', default=True, type=bool)
 define('port', default=8001, type=int)
-define('socket_handler', default='logs', type=str)
+define('host', default='127.0.0.1', type=str)
 define('gateway', default=6777, type=int)
 define('templates', default=install.STATIC_DIR, type=str)
 
 if __name__ == '__main__':
+    # Parse options from command lines
     parse_command_line()
+    options.socket_handler = 'logs'
+
+    # Catch termination signals
     signal.signal(signal.SIGTERM, catch_signal)
     signal.signal(signal.SIGINT, catch_signal)
+    
+    # Create TCP and HTTP server and run I/O loop
     start()
