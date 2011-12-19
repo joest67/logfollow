@@ -40,6 +40,17 @@ specify other port with ``--port`` param. Full list of launching params,
 you can find in help message::
 
     logfollowd.py --help
+	Usage: /usr/local/bin/logfollowd.py [OPTIONS]
+
+	Options:
+	  --help                           show this help information
+	  --logging=debug|info|warning|error|none Set the log level. 
+	  --debug                          
+	  --gateway_host                   
+	  --gateway_port                   
+	  --host                           
+	  --port                           
+	  --templates                      
 
 In order to use util without internet connection you have to upload all 
 necessary JS libraries from CDNs. This can be done::
