@@ -46,9 +46,34 @@ necessary JS libraries from CDNs. This can be done::
 
     logfollowctl.py upload_scripts
 
-Running under `supervisor <http://supervisord.org/>`_::
+Running under `supervisor <http://supervisord.org/>`_.
 
-    TBD
+Supervisor can help you with relaunching Logfollow server after critical error and 
+system reboot. It also provide you with simple console and web-based monitoring 
+tool for checking server status, reading logs tail and restarting process remotely.
+
+You can find more information in Supervisor documentation. Firstly, you should
+setup Supervisor and ensure that supervisord daemon in already running.
+
+	sudo -s 
+	## Generate configuration
+	logfollowctl.py supervisor_config /etc/supervisor/conf.d/logfollowd.conf
+	
+	## Restart supervisor in order to spawn new config file
+    supervisorctl reload
+
+    ## Check results...
+    supervisorctl status logfollowd
+		logfollowd                       RUNNING    pid 5390, uptime 0:00:13
+
+You can also provide list of params for `logfollowd.py` launching calling `logfollowctl.py` util.
+
+	logfollowctl.py supervisor_config --logging=debug --port=8001 --host=127.0.0.1
+
+Note that, if don't use `*.conf` filename as first param after `supervisor_config` 
+generated configuration will be pushed to STDOUT. It can be useful for debuging configuration 
+file and for using in pipes. 
+
 
 Contributors
 ------------
