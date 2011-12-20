@@ -64,7 +64,7 @@ system reboot. It also provide you with simple console and web-based monitoring
 tool for checking server status, reading logs tail and restarting process remotely.
 
 You can find more information in Supervisor documentation. Firstly, you should
-setup Supervisor and ensure that supervisord daemon in already running.
+setup Supervisor and ensure that supervisord daemon in already running::
 
     sudo -s 
     ## Generate configuration
@@ -77,7 +77,7 @@ setup Supervisor and ensure that supervisord daemon in already running.
     supervisorctl status logfollowd
         logfollowd                       RUNNING    pid 5390, uptime 0:00:13
 
-You can also provide list of params for `logfollowd.py` launching calling `logfollowctl.py` util.
+You can also provide list of params for `logfollowd.py` launching calling `logfollowctl.py` util::
 
     logfollowctl.py supervisor_config --logging=debug --port=8001 --host=127.0.0.1
 
