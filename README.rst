@@ -57,9 +57,10 @@ necessary JS libraries from CDNs. This can be done::
 
     logfollowctl.py upload_scripts
 
-Running under `supervisor <http://supervisord.org/>`_.
+Supervisor
+----------
 
-Supervisor can help you with relaunching Logfollow server after critical error and 
+`Supervisor <http://supervisord.org/>`_ can help you with relaunching Logfollow server after critical error and 
 system reboot. It also provide you with simple console and web-based monitoring 
 tool for checking server status, reading logs tail and restarting process remotely.
 
