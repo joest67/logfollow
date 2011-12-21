@@ -48,12 +48,13 @@ def shutdown():
     io_loop.add_timeout(time.time() + 2, io_loop.stop)
     logging.debug('IO loop will be stopped in 2 seconds ...')
 
-define('debug', default=True, type=bool)
-define('host', default='127.0.0.1', type=str)
-define('port', default=8001, type=int)
-define('gateway_host', default='127.0.0.1', type=str)
-define('gateway_port', default=6777, type=int)
-define('templates', default=install.STATIC_DIR, type=str)
+define('debug', help='Whether to work in debug mode or not', default=True, type=bool)
+define('host', help='Address to bing HTTP server', default='127.0.0.1', type=str)
+define('port', help='HTTP port for listening incoming requests', default=8001, type=int)
+define('gateway_host', help='Address to bind internal TCP server', default='127.0.0.1', type=str)
+define('gateway_port', help='TPC port for handling log streams', default=6777, type=int)
+define('templates', default=install.STATIC_DIR, type=str, 
+        help='Directory with templates. Do not change this param if you are not sure.')
 
 if __name__ == '__main__':
     # Parse options from command lines
