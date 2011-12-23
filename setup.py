@@ -25,7 +25,7 @@ except:
 
 setup(
     name='logfollow-server',
-    version='0.0.7',
+    version='0.0.9',
     description='Real-time Web Monitor for your logs',
     long_description=readme,
     license=license,
