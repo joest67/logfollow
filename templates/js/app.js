@@ -282,7 +282,7 @@ app = {
     /* this method apply on socket message receive */
     update : function(data) { 
         data = JSON.parse(data);
-        console.log(data);
+
         if (!data || !data.type) {
             return;
         }
