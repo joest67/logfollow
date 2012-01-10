@@ -1,3 +1,9 @@
+/**
+ * TODO 
+ * 1) Implement form basic class and collection manipulation
+ * 2) Think about screen requests, we loose it now on each load
+ */
+
 function logItem(logObj) {
     if (!logObj.name || !logObj.src)
         return {};
@@ -24,9 +30,6 @@ function logItem(logObj) {
                 return;
             }
             app.removeLog(this.src());
-        },
-        edit : function() {
-            app.editLog(this.src());
         },
         isActiveScreenLog: function() {
             var activeScreenName = app.data.activeScreen()[0].name();
@@ -56,7 +59,34 @@ function logScreen(screenObj) {
             }
             app.removeScreen(this.name());
         },
+        setRenameForm : function(target) {
+            
+            /* if link is active just close the form and remove active class */
+            if (target.is('.active')) {
+                $(".form-holder").hide();
+                target.removeClass('active');
+                return;
+            }
+            
+            $("#screen-add-form-holder").hide();
+            $(".screens .toggle").removeClass('active');
+            target.addClass('active');
+            
+            /* clear form values */
+            $("[name='name']", "#screen-edit-form-holder").val('');
+            $("[name='oldName']", "#screen-edit-form-holder").val(this.name());
+            
+            /* form positioning */
+            var parentLi = target.parents('li');
+
+            $("#screen-edit-form-holder").css({
+                left: parentLi.offset().left + 'px',
+                width: parentLi.width() + 'px'
+            }).show();
+            
+        },
         setActive : function() {
+            $(".form-holder").hide();
             app.setActiveScreen(this.name());
         },
         isNotDefault: function() {
@@ -71,7 +101,7 @@ var dataListener = {
     _addConstants : function() {
         this.MESSAGE_ENTRY = 'entry';
         this.MESSAGE_STATUS = 'status';
-        this.STATUS_ERROR = 'error';
+        this.STATUS_ERROR = 'ERROR';
     },    
     
     init : function() {
@@ -91,14 +121,11 @@ var dataListener = {
         var hoc = this;
 
         this.listener.onopen = function(e) {
-            hoc.follow(app.getLogList());
+            hoc.follow(app.initLogs);
         };
 
         this.listener.onmessage = function(m) {
-            // TODO: Error handling?
-            if (m.type == 'message') {
-                app.update(JSON.parse(m.data));
-            }
+            app.update(m.data);
         };
 
         // TODO: Implement front-end logic for server disconnect
@@ -204,7 +231,7 @@ app = {
         
         /* init knockout model */
         this.initViewModel();
-
+        
         /* init signal listener */
         this.listener = dataListener;
         this.listener.init();
@@ -216,6 +243,7 @@ app = {
       
     initConstants : function() {
         this.DEFAULT_SCREEN_NAME = '_default';
+        this.initLogs = [];
     },
 
     initViewModel : function() {
@@ -224,7 +252,7 @@ app = {
         var mapping = {
             'logs': {
                 create: function(options) {
-                    return new logItem(options.data);
+                    app.initLogs.push(options.data.src);
                 }
             },
             'screens': {
@@ -234,13 +262,9 @@ app = {
             }
         }
         
-        this.data = ko.mapping.fromJS(this.data, mapping);
         
-        this.data.staticText = {
-            greeting : "Hello, you are new here. Add your first log below",
-            addLogMessage : "Add new log",
-            addScreenMessage : "Add new screen"
-        };
+        this.data = ko.mapping.fromJS(this.data, mapping);
+        this.data.logs = ko.observableArray([]);
         
         this.data.activeScreen = ko.dependentObservable(function() {
             return ko.utils.arrayFilter(hoc.data.screens(), function(screen) {
@@ -255,33 +279,51 @@ app = {
         ko.applyBindings(this.data);
     },
 
-    /* return array of log sources to listen on socket connect */
-    getLogList : function() {
-        var logList = [];
-        var data = ko.toJS(this.data.logs);
-        for ( var logIndex in data) {
-            if (data[logIndex]['src']) {
-                logList.push(data[logIndex]['src']);
-            }
-        }
-
-        return logList;
-    },
-
     /* this method apply on socket message receive */
-    update : function(data) {
+    update : function(data) { 
+        data = JSON.parse(data);
+        console.log(data);
         if (!data || !data.type) {
             return;
         }
-          
-        if (data.type == dataListener.MESSAGE_ENTRY) {
+        
+        /* handle error */
+        if (data.type == dataListener.MESSAGE_STATUS && data.status == dataListener.STATUS_ERROR) { 
+            this.addLogError(data);
+            return;
+        }
+        
+        /* handle add log */
+        if (data.type == dataListener.MESSAGE_STATUS) { 
+            this.addLog(data);
+            return;
+        }
+        
+        /* handle normal log message */
+        if (data.type == dataListener.MESSAGE_ENTRY) { 
             this.addLogMessage(data);
         }
         
-        if (data.type == dataListener.MESSAGE_ENTRY && data.status == dataListener.STATUS_ERROR) {
-            this.addLogError(data);
+    },
+    
+    /* TODO remove from app */
+    toggleAddScreenForm: function() {
+        
+        var screen = $('#screen-add-form-holder');
+        
+        if (screen.is(':visible')) {
+            screen.hide();
+            return;
         }
         
+        /* clear form before show */
+        $("input[type=text]", screen).val('');
+        
+        /* close edit forms */
+        $(".screens .toggle").removeClass('active');
+        $(".form-holder").hide();
+        
+        screen.show();
     },
 
     addScreen : function(form) {
@@ -322,6 +364,35 @@ app = {
             }
         }
 
+    },
+    
+    renameScreen : function(form) {
+        var name = $("[name='name']", form).val(),
+            oldName = $("[name='oldName']", form).val();
+        
+        if ('' == name || app.checkScreenExist(name) || !oldName) {
+            /* toDo add error notification */
+            return false;
+        }
+        
+        var screens = ko.toJS(app.data.screens);
+        for (var i in screens) {
+            if (screens[i].name == oldName) {
+                app.data.screens()[i].name(name);
+            }
+        }
+		
+        /* XXX maybe not need due to ko */
+        var logs = ko.toJS(app.data.logs);
+        for (var i in logs) {
+            var renameIndex = logs[i].screens.indexOf(oldName);
+            if (-1 != renameIndex) {
+                app.data.logs()[i].screens()[renameIndex].name(name);
+            }
+        }
+        
+        $(".screens .toggle").removeClass('active');
+        $(".form-holder").hide();
     },
 	
     checkScreenExist: function(name) {
@@ -369,38 +440,49 @@ app = {
         return false;
     },
 
-    addLog : function(form) {
-        var screenNames = $("select", form).val(),
-        logName =  $("#log-name", form).val(),
-        logSource =  $("#log-source", form).val();
+    addLog : function(data) {
+        var activeScreen = app.data.activeScreen()[0].name();
+            
+        /* no duplicates */    
+        if (app.checkLogExist(data.log)) {
+            /* try to add active category here */
+            var logs = ko.toJS(app.data.logs);
+            for (var i in logs) {
+                if (logs[i].src == data.log) {
+                    var screens = ko.toJS(app.data.logs()[i].screens);
+                    if (-1 == screens.indexOf(activeScreen)) {
+                        app.data.logs()[i].screens.push(activeScreen);
+                    }
+                }
+            }
+            
+            $('#log-holder').isotope('reloadItems').isotope({sortBy: "original-order"});
+            return;
+        }
+
+        var log = new logItem({
+            'name' : data.log,
+            'src' : data.log,
+            'screens': [activeScreen],
+            'messages' : data.messages || []
+        }); 
+        
+        app.data.logs.push(log);
+        
+        $('#log-holder').isotope('reloadItems').isotope({sortBy: "original-order"});
+              
+    },
+    
+    sendFollowLogReguest : function(form) {
+        var logSource =  $("#log-name", form).val();
             
         if ('' == logSource || app.checkLogExist(logSource)) {
             return;
         }
 
-        var log = new logItem({
-            'name' : logName || logSource,
-            'src' : logSource
-        });
+        $("input[type=text]", form).val('');      
         
-        for (var key in screenNames) {
-            if (app.checkScreenExist( screenNames[key] )) {
-                log.screens.push( screenNames[key] );
-            }
-        }
-
-        if (!log.screens().length) {
-            return;
-        }
-
-        $("input[type=text]", form).val('');
-        
-        
-        
-        app.data.logs.push(log);
         app.listener.follow([logSource]);
-        
-        $('#log-holder').isotope('reloadItems').isotope({sortBy: "original-order"});
               
     },
 
@@ -469,26 +551,7 @@ app = {
         /* simple but lame */
         setInterval(function() {
             hoc.storage.saveData(hoc.data)
-        }, 5000);
-        
-        /* toDo create pop-up manager */
-        /* XXX remove this later */
-        $('#showAddForm').click(function(e) {
-            e.preventDefault();
-            $('.overlay').hide();
-            $('#log-form-holder').show();
-        });
-        
-        $('#showAddScreen').click(function(e) {
-            e.preventDefault();
-            $('.overlay').hide();
-            $('#screen-form-holder').show();
-        });
-        
-        $('.holder .close').click(function(e) {
-            e.preventDefault();
-            $('.overlay').hide();
-        });
+        }, 1000);
         
         /* add isotope */            
         $('#log-holder').isotope({

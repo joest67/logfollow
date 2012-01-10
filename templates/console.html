@@ -26,51 +26,48 @@
     <body>
         
         <div id="wrapper" class="cf">
-            <!-- main actions menu -->
-            <ul id="mainActions">
-                <li>
-                    <a href="#" id="showAddForm">Add log</a>
-                </li>
-                <li>
-                    <a href="#" data-bind="click: app.clearAll">Clear all saved data</a>
-                </li>
-            </ul>
-            <!-- end main actions menu -->
+            <nav class="screens">
+                <ul data-bind="template: { name: 'window-inactive-list', foreach:screens}"></ul>
+                <a href="#" class="icon" id="showAddScreen" data-bind="click: app.toggleAddScreenForm">Add new screen</a>
+                <a href="#" class="icon" id="showSettings">Settings</a>
+            </nav>
             
-            
-            <!-- contain screens -->
-            <aside>
-                
-                <ul class="screens" data-bind="template: { name: 'window-inactive-list', foreach:screens}"></ul>
-                <a href="#" id="showAddScreen">Add New Screen</a>
-
-                <!-- screen item template -->
-                <script id="window-inactive-list" type="text/html">
-                    {% raw '{{' %}if  $data.isActive(){% raw '}}' %}
-                    <li class="active">
+            <!-- screen item template -->
+            <script id="window-inactive-list" type="text/html">
+                {% raw '{{' %}if  $data.isActive(){% raw '}}' %}
+                <li class="active">
+                    <span class="holder">
                         <a href="#" data-bind="text: $data.name()"></a>
-                    </li>
-                    {% raw '{{' %}else{% raw '}}' %}
-                    <li>
-                        <a class="delete" href="#" class="remove" data-bind="visible: $data.isNotDefault(), click: $data.remove">X</a>
+                    </span>
+                </li>
+                {% raw '{{' %}else{% raw '}}' %}
+                <li>
+                    <span class="holder">
+                        {% raw '{{' %}if  $data.isNotDefault(){% raw '}}' %}
+                        <a class="icon delete" href="#" data-bind="click: $data.remove">Delete</a>
+                        <a class="icon toggle" href="#" data-bind="click: function(event) { $data.setRenameForm($(event.target)) }">Rename</a>
+                        {% raw '{{' %}/if{% raw '}}' %}
                         <a href="#" data-bind="text: $data.name(), click: $data.setActive"></a>
-                    </li>
-                    {% raw '{{' %}/if{% raw '}}' %}
-                </script>
-                <!-- end screen item -->
-                
-            </aside>
-            <!-- end aside -->
+                    </span>
+                </li>
+                {% raw '{{' %}/if{% raw '}}' %}
+            </script>
+            <!-- end screen item -->
             
-            <section id="log-holder" class="cf" data-bind="template: { name:'window', foreach:logs}"></section>
+            <section id="log-holder" class="cf" data-bind="template: { name:'window', foreach:logs}">
+                <div class="item" id="log-form-holder" data-bind="template: 'addLog'"></div>
+            </section>
 
             <!-- log item template -->
             <script id="window" type="text/html">
                 <div class="item ${$data.setErrorClass()}" data-bind="visible: $data.isActiveScreenLog()">
-                    <h5 data-bind="text: $data.name"></h5>
-                    <a href="#" class="delete" data-bind="click: $data.remove">X</a>
-                    <div class="body" data-bind="template: { name: 'message-item', foreach: $data.messages }"></div>
-                    <div class="status-bar" data-bind="text: $data.error"></div>
+                    <div class="inner-holder">
+                        <div class="header-holder">
+                            <h5 data-bind="text: $data.src"></h5>
+                            <a href="#" class="icon delete" data-bind="click: $data.remove">X</a>
+                        </div>
+                        <div class="body" data-bind="template: { name: 'message-item', foreach: $data.messages }"></div>
+                    </div>
                 </div>
             </script>
             <!-- end log item template -->
@@ -79,61 +76,52 @@
             <script id="message-item" type="text/html">
                 <span data-bind="text: $data"></span>
             </script>
-            <!-- end message template -->
-            
-            <!-- -------------------  -->
-            <!--      overlays        -->
-            <!-- -------------------  -->
-            <div id="log-form-holder" class="overlay" data-bind="template: 'addLog'"></div>
+            <!-- end message template -->                        
 
             <!-- add log form template  -->
             <script id="addLog" type="text/html">
-                <div class="holder greeting">
-                    <a href="#" class="close">X</a>
-                    <form  data-bind="submit: app.addLog">
-                        <p data-bind="text: staticText.addLogMessage, visible: !app.data.isFirstLog()"></p>
-                        <p data-bind="text: staticText.greeting, visible: app.data.isFirstLog()"></p>
-                        <p>
-                            <label for="screen-select">Choose screen:</label>
-                            <select id="screen-select" multiple="multiple" data-bind="options: screens, optionsText: 'name', optionsValue: 'name'"></select>
-                        </p>
-                        <p>
-                            <label for="log-name">Enter log name:</label>
-                            <input  type="text" id="log-name" />
-                        </p>
-                        <p>
-                            <label for="log-source">Enter log source:</label>
-                            <input  type="text" id="log-source" />
-                        </p>
-                        <p style="text-align: right">
-                            <input type="submit" value="Add" />						
-                        </p>
+                <div class="inner-holder">
+                    <form  data-bind="submit: app.sendFollowLogReguest">               
+                        <input type="text" id="log-name" placeholder="add log..." />
                     </form>
                 </div>
             </script>
             <!-- end add log form template  -->
+            
+            <!-- -------------------  -->
+            <!--        forms         -->
+            <!-- -------------------  -->
 
-            <div id="screen-form-holder" class="overlay" data-bind="template: 'add-screen'"></div>
+            <div class="form-holder simple" id="screen-add-form-holder" data-bind="template: 'add-screen-form'"></div>
 
             <!-- add screen form template  -->
-            <script id="add-screen" type="text/html">
-                <div class="holder screen">
-                    <a href="#" class="close">X</a>
-                    <form  data-bind="submit: app.addScreen">
-                        <p data-bind="text: staticText.addScreenMessage"></p>
-                        <p>
-                            <label for="screen-name">Choose name:</label>
-                            <input type="text" id="screen-name" />
-                        </p>
-                        <p style="text-align: right">
-                            <input type="submit" value="Add" />						
-                        </p>
-                    </form>
-                </div>
+            <script id="add-screen-form" type="text/html">
+                <div class="pseudoActive" data-bind="click: app.toggleAddScreenForm"></div>
+                <form  data-bind="submit: app.addScreen">
+                    <label for="screen-name">Choose name:</label>
+                    <input type="text" id="screen-name" />
+                </form>
             </script>
-            <!-- end add screen form template  -->
+            <!-- end add screen form template --> 
+            
+            <div class="form-holder simple" id="screen-edit-form-holder" data-bind="template: 'edit-screen-form'"></div>
+
+            <!-- edit screen form template  -->
+            <script id="edit-screen-form" type="text/html">
+                <form  data-bind="submit: app.renameScreen">
+                    <input type="hidden" name="oldName" />
+                    <label for="screen-edit-name">Rename screen:</label>
+                    <input type="text" name="name" id="screen-edit-name"/>
+                </form>
+            </script>
+            <!-- end edit screen form template  -->
 
         </div>
+        <footer>
+            <a href="mailto:">logfollow</a>
+            <br>
+            2012
+        </footer>
 
         <script type="text/javascript" src="/static/js/app.js"></script>
         <script type="text/javascript">
