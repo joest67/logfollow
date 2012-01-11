@@ -20,20 +20,22 @@ class Message:
 
         __slots__ = ('type', 'log', 'status')
 
-        def __init__(self, path):
+        def __init__(self, log):
             self.type = 'status'
             self.status = 'OK'
-            self.log = path 
+            self.log = log['src']
+            self.data = log['data'] 
 
     class FollowError(Jsonable):
         """Represenration for message about error when trying to follow log"""
 
         __slots__ = ('type', 'log', 'status', 'description')
     
-        def __init__(self, path, reason):
+        def __init__(self, log, reason):
             self.type = 'status' 
             self.status = 'ERROR' 
-            self.log = path 
+            self.data = log['data']
+            self.log = log['src'] 
             self.description = str(reason)
 
     class LogEntry(Jsonable):

@@ -54,7 +54,8 @@ class LogStreamer(object):
             cls._follow_item(item, follower)
 
     @classmethod
-    def _follow_item(cls, path, follower):
+    def _follow_item(cls, item, follower):
+        path = item['src']
         if path in cls.streams:
             cls.streams[path]['followers'].add(follower)
         else:
@@ -66,12 +67,12 @@ class LogStreamer(object):
                                              followers=set([follower]))
             except (IOError, OSError), e:
                 # Send error notification to user
-                follower.send(str(Message.FollowError(path, e)))
+                follower.send(str(Message.FollowError(item, e)))
                 logging.exception(e)
                 return False
 
         # Send notification to user 
-        follower.send(str(Message.FollowOk(path)))
+        follower.send(str(Message.FollowOk(item)))
         return True
 
     @classmethod
