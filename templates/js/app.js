@@ -252,7 +252,13 @@ app = {
         var mapping = {
             'logs': {
                 create: function(options) {
-                    app.initLogs.push(options.data.src);
+                    var followObject = {
+                        src: options.data.src,
+                        data: {
+                            screens: options.data.screens || []
+                        }
+                    }
+                    app.initLogs.push(followObject);
                 }
             },
             'screens': {
@@ -286,7 +292,7 @@ app = {
         if (!data || !data.type) {
             return;
         }
-        
+        console.log(data);
         /* handle error */
         if (data.type == dataListener.MESSAGE_STATUS && data.status == dataListener.STATUS_ERROR) { 
             this.addLogError(data);
@@ -479,10 +485,17 @@ app = {
         if ('' == logSource || app.checkLogExist(logSource)) {
             return;
         }
+        
+        var followObject = {
+            src: logSource,
+            data: {
+                screens: [app.data.activeScreen()[0].name()]
+            }
+        }
 
         $("input[type=text]", form).val('');      
         
-        app.listener.follow([logSource]);
+        app.listener.follow([followObject]);
               
     },
 
