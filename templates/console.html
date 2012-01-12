@@ -28,7 +28,7 @@
         <div id="wrapper" class="cf">
             <nav class="screens">
                 <ul data-bind="template: { name: 'window-inactive-list', foreach:screens}"></ul>
-                <a href="#" class="icon" id="showAddScreen" data-bind="click: app.toggleAddScreenForm">Add new screen</a>
+                <a href="#" class="icon" id="showAddScreen" data-bind="click: app.addScreen">Add new screen</a>
                 <a href="#" class="icon" id="showSettings">Settings</a>
             </nav>
             
@@ -91,18 +91,6 @@
             <!-- -------------------  -->
             <!--        forms         -->
             <!-- -------------------  -->
-
-            <div class="form-holder simple" id="screen-add-form-holder" data-bind="template: 'add-screen-form'"></div>
-
-            <!-- add screen form template  -->
-            <script id="add-screen-form" type="text/html">
-                <div class="pseudoActive" data-bind="click: app.toggleAddScreenForm"></div>
-                <form  data-bind="submit: app.addScreen">
-                    <label for="screen-name">Choose name:</label>
-                    <input type="text" id="screen-name" />
-                </form>
-            </script>
-            <!-- end add screen form template --> 
             
             <div class="form-holder simple" id="screen-edit-form-holder" data-bind="template: 'edit-screen-form'"></div>
 

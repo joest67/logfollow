@@ -68,7 +68,6 @@ function logScreen(screenObj) {
                 return;
             }
             
-            $("#screen-add-form-holder").hide();
             $(".screens .toggle").removeClass('active');
             target.addClass('active');
             
@@ -243,6 +242,7 @@ app = {
       
     initConstants : function() {
         this.DEFAULT_SCREEN_NAME = '_default';
+        this.DEFAULT_ADD_SCREEN_NAME = 'screen';
         this.initLogs = [];
     },
 
@@ -311,31 +311,17 @@ app = {
         }
         
     },
-    
-    /* TODO remove from app */
-    toggleAddScreenForm: function() {
-        
-        var screen = $('#screen-add-form-holder');
-        
-        if (screen.is(':visible')) {
-            screen.hide();
-            return;
-        }
-        
-        /* clear form before show */
-        $("input[type=text]", screen).val('');
-        
-        /* close edit forms */
-        $(".screens .toggle").removeClass('active');
-        $(".form-holder").hide();
-        
-        screen.show();
-    },
 
-    addScreen : function(form) {
-        var screenName =  $("#screen-name", form).val();
-        if ('' == screenName || app.checkScreenExist(screenName)) {
-            return;
+    addScreen : function() {
+        var nameIndex = 1,
+            screenName = '';
+               
+        while (nameIndex) {
+            screenName = app.DEFAULT_ADD_SCREEN_NAME + nameIndex;
+            if (!app.checkScreenExist(screenName)) {
+                break;
+            }
+            nameIndex++;
         }
 
         var screen = new logScreen({
@@ -343,9 +329,6 @@ app = {
         });
 
         app.data.screens.push(screen);
-        
-        /* clear the form after item add */
-        $("input[type=text], select", form).val('');
     },
 
     removeScreen : function(name) {
