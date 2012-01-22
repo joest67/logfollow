@@ -11,6 +11,7 @@ body {
     height: 100%;
     min-height: 100%;
     position: relative;
+    font-family: "Ubuntu", "Monaco", monospace;
 }
 
 :focus {
@@ -258,8 +259,8 @@ input[type=text] {
     margin: 0;
     padding: 0 15px 3px 0;
     color: #fbf900;
-    
-    font-size: 14px;
+    font-weight: normal;
+    font-size: 13px;
     line-height: 20px;
 }
 
@@ -273,6 +274,7 @@ input[type=text] {
     height: 256px;
     overflow-y: scroll;
     background-color: #1f1f1f;
+    font-family: monospace;
 }
 
 #log-holder .item span {
@@ -280,7 +282,7 @@ input[type=text] {
     font-size: 12px;
     padding: 6px 13px;
     color: #b7b7b7;
-    font-family: monospace;
+    font-family: "Iconsolata", "Droid Sans Mono", "Andale Mono", "Monaco", "Ubuntu Mono","Courier New", Courier, monospace;
 }
 
 #log-holder .item span:nth-child(2n+1) {
@@ -361,7 +363,10 @@ input[type=text] {
     right: 50px;
     width: 115px;
     padding: 4px 9px;
-    border: 1px solid #fbf900;
+    box-shadow: 0 4px 6px 2px #000;
+    -moz-box-shadow: 0 4px 6px 2px #000;
+    -webkit-box-shadow: 0 4px 6px 2px #000;
+
 }
 
 #screen-add-form-holder .pseudoActive {

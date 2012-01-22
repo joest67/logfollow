@@ -7,6 +7,7 @@ import logging
 import time
 
 from datetime import datetime
+from operator import itemgetter
 
 from tornado import stack_context, ioloop
 from tornado.netutil import TCPServer
@@ -36,7 +37,7 @@ class LogStreamer(object):
     streams = dict()
 
     @classmethod
-    def follow(cls, path, follower):
+    def follow(cls, item, follower):
         """Add additional follower to tail or start streamer if path is new
         
         Path can be just filepath to log or separated with ":" sign server 
@@ -50,8 +51,10 @@ class LogStreamer(object):
         plugins are defined by methods of PathResolver class or any other 
         added function/lambda to plugins dictionary.
         """
-        for item in PathResolver.resolve(path):
-            cls._follow_item(item, follower)
+        for path in PathResolver.resolve(item['src']):
+            i = item.copy()
+            i['src'] = path
+            cls._follow_item(i, follower)
 
     @classmethod
     def _follow_item(cls, item, follower):
@@ -81,7 +84,7 @@ class LogStreamer(object):
         return pipe(cls._command(path)).pid
         
     @classmethod
-    def unfollow(cls, path, follower):
+    def unfollow(cls, item, follower):
         """Remove client from list of followers.
 
         We should keep in mind that follow/unfollow methods are
@@ -90,8 +93,8 @@ class LogStreamer(object):
         avoid this it's necessary to track base command and resolving
         results on following.
         """
-        for item in PathResolver.resolve(path):
-            cls._unfollow_item(item, follower)
+        for path in PathResolver.resolve(item['src']):
+            cls._unfollow_item(path, follower)
 
     @classmethod
     def _unfollow_item(cls, path, follower):
@@ -314,11 +317,11 @@ class ClientConnection(SockJSConnection):
         it's fully enough.
         """
         if protocol['command'] == 'follow':
-            self.follow = self.follow.union(set(protocol['logs']))
+            self.follow = self.follow.union(set(map(itemgetter('src'), protocol['logs'])))
             for log in protocol['logs']:
                 LogStreamer.follow(log, self)
         elif protocol['command'] == 'unfollow':
-            self.follow -= set(protocol['logs'])
+            self.follow -= set(map(itemgetter('src'), protocol['logs']))
             for log in protocol['logs']:
                 LogStreamer.unfollow(log, self)
         else:
