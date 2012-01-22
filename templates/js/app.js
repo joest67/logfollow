@@ -40,8 +40,24 @@ function logItem(logObj) {
             
             return true;
         },
-        setErrorClass: function() {
-            return this.error() == '' ? '' : 'error';
+        setClass: function() {
+            var classRow = ['item'],
+                activeScreenName = app.data.activeScreen()[0].name();
+            
+            if (this.error() != '') {
+                classRow.push('error');
+            }
+                
+            /*if (!activeScreenName || -1 == this.screens().indexOf(activeScreenName)) {
+                classRow.push('hidden');
+            }*/
+            
+            return classRow.join(' ');
+        },
+        setHiddenState: function() {
+            var activeScreenName = app.data.activeScreen()[0].name();
+            
+            return (!activeScreenName || -1 == this.screens().indexOf(activeScreenName)) ? 'hidden' : 'visible';
         }
     }
 }
@@ -236,7 +252,6 @@ app = {
         this.listener.init();
         
         /* init inner bindings */ 
-        /* only save for now */
         this._bindEvents();
     },
       
@@ -292,7 +307,7 @@ app = {
         if (!data || !data.type) {
             return;
         }
-        console.log(data);
+        //console.log(data);
         /* handle error */
         if (data.type == dataListener.MESSAGE_STATUS && data.status == dataListener.STATUS_ERROR) { 
             this.addLogError(data);
@@ -417,6 +432,9 @@ app = {
                 this.data.screens()[oldActiveIndex].isActive(false);
             } 
         }
+        
+        $('#log-holder').isotope('reloadItems').isotope({ filter: ".item[data-hidden=visible]" });
+        
     },
     
     checkLogExist: function(source) {
@@ -430,6 +448,8 @@ app = {
     },
 
     addLog : function(data) {
+        //console.log(data);
+        
         var activeScreen = app.data.activeScreen()[0].name();
             
         /* no duplicates */    
@@ -552,7 +572,8 @@ app = {
         /* add isotope */            
         $('#log-holder').isotope({
             itemSelector : '.item',
-            layoutMode : 'fitRows'
-        });
+            layoutMode : 'fitRows',
+            sortBy: "original-order"
+        }).isotope({ filter: ".item[data-hidden=visible]" });
     }
 }

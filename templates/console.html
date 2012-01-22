@@ -57,12 +57,12 @@
             <!-- end screen item -->
             
             <section id="log-holder" class="cf" data-bind="template: { name:'window', foreach:logs}">
-                <div class="item" id="log-form-holder" data-bind="template: 'addLog'"></div>
+                <div class="item" id="log-form-holder" data-bind="template: 'addLog'" data-hidden="visible"></div>
             </section>
 
             <!-- log item template -->
             <script id="window" type="text/html">
-                <div class="item ${$data.setErrorClass()}" data-bind="visible: $data.isActiveScreenLog()">
+                <div class="item" data-bind="attr: {'data-hidden' : $data.setHiddenState() }">
                     <div class="inner-holder">
                         <div class="header-holder">
                             <h5 data-bind="text: $data.src"></h5>

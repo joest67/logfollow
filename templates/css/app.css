@@ -211,6 +211,7 @@ input[type=text] {
 /* main block styles */
 #log-holder {
     z-index: 1;
+    min-height: 310px;
     /* display: table; */
     width: 100%;
 }
