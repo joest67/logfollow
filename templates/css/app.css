@@ -72,10 +72,16 @@ input[type=text] {
 .screens {
     display: block;
     position: relative;
-    overflow: auto;
+    overflow: hidden;
     
     padding: 0 60px 1px 0;
     border-bottom: 6px solid #262626;
+}
+
+.screens .list-holder {
+    width: 100%;
+    position: relative;
+    overflow: auto;
 }
 
 .screens ul {
