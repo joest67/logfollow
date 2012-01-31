@@ -20,11 +20,11 @@ Install
 
 Using ``PyPI`` package::
 
-    sudo easy_install logfollow-server
+    sudo pip install logfollow-server
 
 Install from source::
 
-    git clone git@github.com:kachayev/logfollow.git 
+    git clone git://github.com/kachayev/logfollow.git 
     sudo python setup.py install
     sudo python setup.py upload_scripts
 
