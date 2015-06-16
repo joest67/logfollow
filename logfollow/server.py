@@ -5,8 +5,7 @@ import subprocess
 import socket
 import logging
 import time
-
-from datetime import datetime
+from functools import partial
 from operator import itemgetter
 
 from tornado import stack_context, ioloop
@@ -22,16 +21,19 @@ from sockjs.tornado import SockJSRouter, SockJSConnection
 from logfollow import ui
 from logfollow.protocol import Message
 
+
 def pipe(commands):
     """Communicate given list of process into one pipe"""
     def into(r, el):
         return subprocess.Popen(el, shell=True,
-                                stdin=(r.stdout if r else None),  
-                                stdout=subprocess.PIPE)    
+                                stdin=(r.stdout if r else None),
+                                stdout=subprocess.PIPE)
 
     return reduce(into, commands, None)
 
+
 class LogStreamer(object):
+
     """Call subprocessed for streaming logs"""
 
     streams = dict()
@@ -39,16 +41,16 @@ class LogStreamer(object):
     @classmethod
     def follow(cls, item, follower):
         """Add additional follower to tail or start streamer if path is new
-        
-        Path can be just filepath to log or separated with ":" sign server 
+
+        Path can be just filepath to log or separated with ":" sign server
         identity and filepath (on remote machine). So, both of this variants:
         /var/log/nginx/access.log and user@host:/var/log/nginx/access.log
         will be valid.
 
-        It's also possible to use pluging prefixes in path. For ex., you 
+        It's also possible to use pluging prefixes in path. For ex., you
         can specify path as "DIR /var/log/nginx" and it will add to following
-        listing all log files from given directory. Full list of supported 
-        plugins are defined by methods of PathResolver class or any other 
+        listing all log files from given directory. Full list of supported
+        plugins are defined by methods of PathResolver class or any other
         added function/lambda to plugins dictionary.
         """
         for path in PathResolver.resolve(item['src']):
@@ -65,7 +67,7 @@ class LogStreamer(object):
             try:
                 # Check file's validity to work with
                 with open(path):
-                    cls.streams[path] = dict(pid=cls._run(path), 
+                    cls.streams[path] = dict(pid=cls._run(path),
                                              restart=0,
                                              followers=set([follower]))
             except (IOError, OSError), e:
@@ -74,7 +76,7 @@ class LogStreamer(object):
                 logging.exception(e)
                 return False
 
-        # Send notification to user 
+        # Send notification to user
         follower.send(str(Message.FollowOk(item)))
         return True
 
@@ -82,14 +84,14 @@ class LogStreamer(object):
     def _run(cls, path):
         """Save subprocess PID in order to check periodicaly"""
         return pipe(cls._command(path)).pid
-        
+
     @classmethod
     def unfollow(cls, item, follower):
         """Remove client from list of followers.
 
         We should keep in mind that follow/unfollow methods are
-        separated in time, so we can catch error with different 
-        results of resolving path on start and on finish. To 
+        separated in time, so we can catch error with different
+        results of resolving path on start and on finish. To
         avoid this it's necessary to track base command and resolving
         results on following.
         """
@@ -117,34 +119,35 @@ class LogStreamer(object):
         """Restart streaming process for given path"""
         if path in cls.streams and not cls.streams[path].get('is_restarting', False):
             # Timeout will be changed from 1 to 32 seconds
-            deadline = (time.time() + 
-                2 ** min(cls.streams[path].get('restart', 0), 5))
+            deadline = (time.time() +
+                        2 ** min(cls.streams[path].get('restart', 0), 5))
 
             cls.streams[path]['is_restarting'] = True
             cls.streams[path]['restart'] += 1
 
-            logging.warning('Restart streamer for %s in %d sec', path, deadline)
+            logging.warning(
+                'Restart streamer for %s in %d sec', path, deadline)
 
-            ioloop.IOLoop.instance().add_timeout(deadline, 
-                partial(cls._restart_timeout, path=path))
+            ioloop.IOLoop.instance().add_timeout(deadline,
+                                                 partial(cls._restart_timeout, path=path))
 
     @classmethod
     def _restart_timeout(cls, path):
         """Do restart after timeout"""
-        # TODO: Catch errors 
+        # TODO: Catch errors
         cls.streams[path]['pid'] = cls._run(path)
-        cls.streams[path]['is_restarting'] = False 
+        cls.streams[path]['is_restarting'] = False
 
     @staticmethod
     def _command(path):
         """Generate command for log stream run
-        
-        In order to retrieve log stream from remote server, we will 
-        use SSH connection by given user@host pair. This will be enough 
-        only in case of password-less way of connection 
-        (with using ssh-key, for ex). 
-        
-        Auto checking of ssh keys validity or even facilities to provide 
+
+        In order to retrieve log stream from remote server, we will
+        use SSH connection by given user@host pair. This will be enough
+        only in case of password-less way of connection
+        (with using ssh-key, for ex).
+
+        Auto checking of ssh keys validity or even facilities to provide
         auth parameters from client side, will be add during next iterations.
         """
         nc = "nc {host} {port}".format(host=options.gateway_host,
@@ -153,11 +156,13 @@ class LogStreamer(object):
             tail = 'tail -f -v %s' % path
         else:
             tail = "ssh %s 'tail -f -v %s'" % tuple(path.split(':', 1))
-                    
+
         logging.info('Start streaming %s with %s', path, [tail, nc])
         return tail, nc
 
+
 class PathResolver(object):
+
     """List of plugins for resolving given path to log"""
 
     @staticmethod
@@ -165,11 +170,11 @@ class PathResolver(object):
         """Get list of files from directory given in path param.
 
         This plugin should ignore all files, which ends with figure
-        (for ex., *.1, *.2 etc) cause of log rotating results. To support 
+        (for ex., *.1, *.2 etc) cause of log rotating results. To support
         hierarchy in files/directory you should rewrite this method as well.
 
-        We should also add here method for periodical checking of new 
-        files in directory (it's not always necessary, but ignoring this 
+        We should also add here method for periodical checking of new
+        files in directory (it's not always necessary, but ignoring this
         fact can be unpredictable for users).
         """
         logs = []
@@ -177,13 +182,13 @@ class PathResolver(object):
             for root, dirs, files in os.walk(path):
                 for log in files:
                     try:
-                        int(log.split('.')[-1]) 
+                        int(log.split('.')[-1])
                     except (ValueError, IndexError):
                         logs.append(os.path.join(root, log))
         except OSError:
             # TODO: Add here something like "plugin resolving error"
-            raise 
-        else: 
+            raise
+        else:
             return logs
 
     @classmethod
@@ -191,9 +196,9 @@ class PathResolver(object):
         """Should also return iterable object"""
         if not path.count(' '):
             return [path]
-        
+
         plugin, item = path.split(' ', 1)
-        try: 
+        try:
             # TODO: Possbile we will add other way to init plugin
             resolver = getattr(cls, plugin.lower())
         except AttributeError:
@@ -202,7 +207,9 @@ class PathResolver(object):
             items = resolver(item)
             return [items] if type(items) == str else items
 
+
 class LogServer(TCPServer):
+
     """Handle incoming TCP connections from log pusher clients"""
 
     def handle_stream(self, stream, address):
@@ -210,7 +217,9 @@ class LogServer(TCPServer):
         logging.info('Incoming connection from %r', address)
         LogConnection(stream, address, server=self)
 
+
 class LogConnection(object):
+
     """Handle each IOStream for incoming log pusher connections"""
 
     logs = set()
@@ -226,7 +235,6 @@ class LogConnection(object):
 
         self.stream.set_close_callback(self._on_disconnect)
         self.stream.read_until(b("\n"), self._on_head)
-
 
     def _on_head(self, line):
         """Extract information about log file path.
@@ -267,15 +275,18 @@ class LogConnection(object):
         server identity (not only file path) in future"""
         return str(self.filepath)
 
+
 class DashboardHandler(RequestHandler):
+
     """Render HTML page with user's dashboard"""
 
     def get(self):
         self.render(
             os.path.join(self.application.options.templates, 'console.html'),
             **self.application.settings
-         )
-        
+        )
+
+
 class ClientConnection(SockJSConnection):
     clients = set()
 
@@ -310,14 +321,15 @@ class ClientConnection(SockJSConnection):
 
     def _command(self, protocol):
         """Switch between known commands from message.
-        
-        Possible in future we will redesign this actions 
+
+        Possible in future we will redesign this actions
         with using some modern MVC-like or Command-based pattern
-        for handling many different commands, but for this time 
+        for handling many different commands, but for this time
         it's fully enough.
         """
         if protocol['command'] == 'follow':
-            self.follow = self.follow.union(set(map(itemgetter('src'), protocol['logs'])))
+            self.follow = self.follow.union(
+                set(map(itemgetter('src'), protocol['logs'])))
             for log in protocol['logs']:
                 LogStreamer.follow(log, self)
         elif protocol['command'] == 'unfollow':
@@ -330,20 +342,22 @@ class ClientConnection(SockJSConnection):
                             description='Undefined command')
             self.send(response)
 
+
 class LogTracer(Application):
+
     """Application object. Provide routing configuration."""
 
     def __init__(self, options):
         self.options = options
-        settings = dict(debug=options.debug, 
-                        socket_port=options.port, 
+        settings = dict(debug=options.debug,
+                        socket_port=options.port,
                         socket_handler=options.socket_handler,
                         ui_modules=ui)
-            
+
         super(LogTracer, self).__init__([
-            # Static files handling is necessary only for working with 
+            # Static files handling is necessary only for working with
             # js/css files uploaded to local machine with using install script
             (r"/static/(.*)", StaticFileHandler, dict(path=options.templates)),
             (r"/", DashboardHandler),
-        ] + SockJSRouter(ClientConnection, '/'+options.socket_handler).urls, 
-        **settings)
+        ] + SockJSRouter(ClientConnection, '/' + options.socket_handler).urls,
+            **settings)

@@ -13,11 +13,13 @@ import sys
 
 from logfollow.install import StaticFilesUploader, STATIC_DIR
 
+
 def upload_scripts(*args):
     """Upload JS/CSS files from CDN servers to local directory
     in order to work with project without internet connection.
     """
     StaticFilesUploader.upload()
+
 
 def supervisor_config(*args):
     """Generate simple configuration for running logfollowd 
@@ -51,6 +53,7 @@ def supervisor_config(*args):
         "user={user}".format(user=os.getlogin())
     ])
 
+
 def check_env(*args):
     raise NotImplementedError()
 
@@ -58,7 +61,7 @@ if __name__ == '__main__':
     try:
         globals()[sys.argv[1]](*sys.argv[2:])
     except IndexError:
-        print "Please, provide command to execute"    
+        print "Please, provide command to execute"
     except KeyError:
         print "Unknown command given: {0}".format(sys.argv[1])
     except Exception, e:
