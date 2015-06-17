@@ -8,12 +8,10 @@ import time
 from functools import partial
 from operator import itemgetter
 
-from tornado import stack_context, ioloop
-from tornado.netutil import TCPServer
-from tornado.httpserver import HTTPServer
+from tornado import ioloop
+from tornado.tcpserver import TCPServer
 from tornado.web import Application, RequestHandler, StaticFileHandler
-from tornado.escape import json_encode, json_decode
-from tornado.util import b, bytes_type
+from tornado.escape import json_decode
 from tornado.options import options
 
 from sockjs.tornado import SockJSRouter, SockJSConnection
@@ -234,7 +232,7 @@ class LogConnection(object):
         self.server = server
 
         self.stream.set_close_callback(self._on_disconnect)
-        self.stream.read_until(b("\n"), self._on_head)
+        self.stream.read_until(b"\n", self._on_head)
 
     def _on_head(self, line):
         """Extract information about log file path.
@@ -261,7 +259,7 @@ class LogConnection(object):
 
     def wait(self):
         """Read from stream until the next signed end of line"""
-        self.stream.read_until(b("\n"), self._on_read)
+        self.stream.read_until(b"\n", self._on_read)
 
     def _on_disconnect(self, *args, **kwargs):
         logging.info('Log streamer disconnected %s', self)
@@ -358,6 +356,7 @@ class LogTracer(Application):
             # Static files handling is necessary only for working with
             # js/css files uploaded to local machine with using install script
             (r"/static/(.*)", StaticFileHandler, dict(path=options.templates)),
-            (r"/", DashboardHandler),
-        ] + SockJSRouter(ClientConnection, '/' + options.socket_handler).urls,
-            **settings)
+            (r"/", DashboardHandler), ]
+            + SockJSRouter(ClientConnection, '/' + options.socket_handler).urls,
+            **settings
+        )

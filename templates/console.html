@@ -8,11 +8,11 @@
         src="{% module LocalCopy('/js/jquery.min.js') %}"></script>
         <script type="text/javascript"
         src="{% module LocalCopy('/js/jquery.tmpl.js') %}"></script>
-        <script type="text/javascript" 
+        <script type="text/javascript"
         src="{% module LocalCopy('/js/jquery.isotope.js') %}"></script>
         <script type="text/javascript"
         src="{% module LocalCopy('/js/knockout-1.2.1.js') %}"></script>
-        <script type="text/javascript" 
+        <script type="text/javascript"
         src="{% module LocalCopy('/js/knockout.mapping.js') %}"></script>
         <link rel="icon" type="image/png" href="/static/favicon.ico" />
     </head>
@@ -24,7 +24,7 @@
         };
     </script>
     <body>
-        
+
         <div id="wrapper" class="cf">
             <nav class="screens">
                 <div class="list-holder">
@@ -33,7 +33,7 @@
                 <a href="#" class="icon" id="showAddScreen" data-bind="click: app.addScreen">Add new screen</a>
                 <a href="#" class="icon" id="showSettings">Settings</a>
             </nav>
-            
+
             <!-- screen item template -->
             <script id="window-inactive-list" type="text/html">
                 {% raw '{{' %}if  $data.isActive(){% raw '}}' %}
@@ -55,7 +55,7 @@
                 {% raw '{{' %}/if{% raw '}}' %}
             </script>
             <!-- end screen item -->
-            
+
             <section id="log-holder" class="cf" data-bind="template: { name:'window', foreach:logs}">
                 <div class="item" id="log-form-holder" data-bind="template: 'addLog'" data-hidden="visible"></div>
             </section>
@@ -73,27 +73,27 @@
                 </div>
             </script>
             <!-- end log item template -->
-            
+
             <!-- message template for item -->
             <script id="message-item" type="text/html">
                 <span data-bind="text: $data"></span>
             </script>
-            <!-- end message template -->                        
+            <!-- end message template -->
 
             <!-- add log form template  -->
             <script id="addLog" type="text/html">
                 <div class="inner-holder">
-                    <form  data-bind="submit: app.sendFollowLogReguest">               
+                    <form  data-bind="submit: app.sendFollowLogReguest">
                         <input type="text" id="log-name" placeholder="add log..." />
                     </form>
                 </div>
             </script>
             <!-- end add log form template  -->
-            
+
             <!-- -------------------  -->
             <!--        forms         -->
             <!-- -------------------  -->
-            
+
             <div class="form-holder simple" id="screen-edit-form-holder" data-bind="template: 'edit-screen-form'"></div>
 
             <!-- edit screen form template  -->

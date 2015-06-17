@@ -65,7 +65,7 @@ define('templates', default=install.STATIC_DIR, type=str,
 if __name__ == '__main__':
     # Parse options from command lines
     parse_command_line()
-    options.socket_handler = 'logs'
+    options.define('socket_handler', 'logs')
 
     # Catch termination signals
     signal.signal(signal.SIGTERM, catch_signal)

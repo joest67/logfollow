@@ -3,7 +3,7 @@
 import os
 import functools
 
-here  = lambda x: os.path.join(os.path.abspath(os.path.dirname(__file__)), x)
+here = lambda x: os.path.join(os.path.abspath(os.path.dirname(__file__)), x)
 files = lambda x: map(functools.partial(os.path.join, x), os.listdir(here(x)))
 
 try:
@@ -25,7 +25,7 @@ except:
 
 setup(
     name='logfollow-server',
-    version='0.0.9',
+    version='0.1.0',
     description='Real-time Web Monitor for your logs',
     long_description=readme,
     license=license,
@@ -33,29 +33,29 @@ setup(
     author='Alexey S. Kachayev',
     author_email='kachayev@gmail.com',
     dependency_links = [
-        'https://github.com/MrJoes/sockjs-tornado/zipball/master#egg=sockjs-tornado-0.0.1'
+        'https://github.com/MrJoes/sockjs-tornado/zipball/master#egg=sockjs-tornado-1.0.1'
     ],
     install_requires=[
-        'tornado>=2.1.1',
-        'sockjs-tornado>=0.0.1'
+        'tornado==4.2',
+        'sockjs-tornado>=1.0.1'
     ],
     packages=[
         'logfollow'
     ],
     scripts=[
-        'bin/logfollowd.py', 
+        'bin/logfollowd.py',
         'bin/logfollowctl.py'
     ],
     data_files = [
-        ('/var/logfollow', ['templates/console.html', 
+        ('/tmp/logfollow', ['templates/console.html',
                             'templates/favicon.ico']),
-        ('/var/logfollow/js', ['templates/js/app.js']),
-        ('/var/logfollow/css', ['templates/css/app.css']),
-        ('/var/logfollow/images', files('templates/images/'))
+        ('/tmp/logfollow/js', ['templates/js/app.js']),
+        ('/tmp/logfollow/css', ['templates/css/app.css']),
+        ('/tmp/logfollow/images', files('templates/images/'))
     ],
     include_package_data=True,
     entry_points = {
-        "distutils.commands": 
+        "distutils.commands":
             ["upload_scripts = logfollow.install:StaticFilesUploader"]
     },
     classifiers=[

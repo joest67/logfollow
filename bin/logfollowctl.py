@@ -22,15 +22,15 @@ def upload_scripts(*args):
 
 
 def supervisor_config(*args):
-    """Generate simple configuration for running logfollowd 
+    """Generate simple configuration for running logfollowd
     server under supervisord.
 
-    If first given argument will be the string with ".conf" suffix, 
-    it will be used as full file name where we should dump generated 
+    If first given argument will be the string with ".conf" suffix,
+    it will be used as full file name where we should dump generated
     configuration. In other case it will be dump directly to STDOUT.
 
-    All other arguments will be used as params for  ``logfollowd.py`` 
-    server start. 
+    All other arguments will be used as params for  ``logfollowd.py``
+    server start.
     """
     name = 'logfollowd'
     log = '/var/log/{name}.log'.format(name=name)

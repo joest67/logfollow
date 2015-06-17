@@ -5,7 +5,7 @@ import os.path
 
 from distutils.core import Command
 
-STATIC_DIR = '/var/logfollow'
+STATIC_DIR = '/tmp/logfollow'
 static = lambda type_, file_: os.path.join(STATIC_DIR, type_, file_)
 
 
