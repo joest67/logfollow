@@ -11,7 +11,7 @@ class Message:
 
     class Jsonable(object):
 
-        """Generate string representation of object with using JSON 
+        """Generate string representation of object with using JSON
         represenration of __dict__ attr of objects' instance"""
 
         def __str__(self):

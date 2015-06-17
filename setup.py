@@ -32,7 +32,7 @@ setup(
     url='https://github.com/kachayev/logfollow',
     author='Alexey S. Kachayev',
     author_email='kachayev@gmail.com',
-    dependency_links = [
+    dependency_links=[
         'https://github.com/MrJoes/sockjs-tornado/zipball/master#egg=sockjs-tornado-1.0.1'
     ],
     install_requires=[
@@ -46,7 +46,7 @@ setup(
         'bin/logfollowd.py',
         'bin/logfollowctl.py'
     ],
-    data_files = [
+    data_files=[
         ('/tmp/logfollow', ['templates/console.html',
                             'templates/favicon.ico']),
         ('/tmp/logfollow/js', ['templates/js/app.js']),
@@ -54,26 +54,26 @@ setup(
         ('/tmp/logfollow/images', files('templates/images/'))
     ],
     include_package_data=True,
-    entry_points = {
+    entry_points={
         "distutils.commands":
             ["upload_scripts = logfollow.install:StaticFilesUploader"]
     },
     classifiers=[
-          'Development Status :: 2 - Pre-Alpha',
-          'Environment :: Web Environment',
-          'Intended Audience :: Developers',
-          'Intended Audience :: System Administrators',
-          'License :: OSI Approved :: Apache Software License',
-          'Operating System :: MacOS :: MacOS X',
-          'Operating System :: Unix',
-          'Operating System :: POSIX',
-          'Programming Language :: Python',
-          'Programming Language :: Python :: 2.6',
-          'Programming Language :: Python :: 2.7',
-          'Topic :: Software Development',
-          'Topic :: Software Development :: Libraries',
-          'Topic :: Software Development :: Libraries :: Python Modules',
-          'Topic :: System :: Software Distribution',
-          'Topic :: System :: Systems Administration',
+        'Development Status :: 2 - Pre-Alpha',
+        'Environment :: Web Environment',
+        'Intended Audience :: Developers',
+        'Intended Audience :: System Administrators',
+        'License :: OSI Approved :: Apache Software License',
+        'Operating System :: MacOS :: MacOS X',
+        'Operating System :: Unix',
+        'Operating System :: POSIX',
+        'Programming Language :: Python',
+        'Programming Language :: Python :: 2.6',
+        'Programming Language :: Python :: 2.7',
+        'Topic :: Software Development',
+        'Topic :: Software Development :: Libraries',
+        'Topic :: Software Development :: Libraries :: Python Modules',
+        'Topic :: System :: Software Distribution',
+        'Topic :: System :: Systems Administration',
     ]
 )

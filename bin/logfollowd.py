@@ -62,6 +62,7 @@ define('gateway_port', help='TPC port for handling log streams',
 define('templates', default=install.STATIC_DIR, type=str,
        help='Directory with templates. Do not change this param if you are not sure.')
 
+
 if __name__ == '__main__':
     # Parse options from command lines
     parse_command_line()
