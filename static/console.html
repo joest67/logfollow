@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="stylesheet" type="text/css" href="{% module LocalCopy('/css/app.css') %}" />
+        <script type="text/javascript"
+        src="{% module LocalCopy('/js/sockjs.js') %}"></script>
+        <script type="text/javascript"
+        src="{% module LocalCopy('/js/jquery.min.js') %}"></script>
+        <script type="text/javascript"
+        src="{% module LocalCopy('/js/jquery.tmpl.js') %}"></script>
+        <script type="text/javascript"
+        src="{% module LocalCopy('/js/jquery.isotope.js') %}"></script>
+        <script type="text/javascript"
+        src="{% module LocalCopy('/js/knockout-1.2.1.js') %}"></script>
+        <script type="text/javascript"
+        src="{% module LocalCopy('/js/knockout.mapping.js') %}"></script>
+        <link rel="icon" type="image/png" href="/static/favicon.ico" />
+    </head>
+    <script type="text/javascript">
+        settings = {
+            io: {
+                host: 'http://' + window.location.hostname + ':{{ socket_port }}/{{ socket_handler }}'
+            }
+        };
+    </script>
+    <body>
+
+        <div id="wrapper" class="cf">
+            <nav class="screens">
+                <div class="list-holder">
+                    <ul data-bind="template: { name: 'window-inactive-list', foreach:screens}"></ul>
+                </div>
+                <a href="#" class="icon" id="showAddScreen" data-bind="click: app.addScreen">Add new screen</a>
+                <a href="#" class="icon" id="showSettings">Settings</a>
+            </nav>
+
+            <!-- screen item template -->
+            <script id="window-inactive-list" type="text/html">
+                {% raw '{{' %}if  $data.isActive(){% raw '}}' %}
+                <li class="active">
+                    <span class="holder">
+                        <a href="#" data-bind="text: $data.name()"></a>
+                    </span>
+                </li>
+                {% raw '{{' %}else{% raw '}}' %}
+                <li>
+                    <span class="holder">
+                        {% raw '{{' %}if  $data.isNotDefault(){% raw '}}' %}
+                        <a class="icon delete" href="#" data-bind="click: $data.remove">Delete</a>
+                        <a class="icon toggle" href="#" data-bind="click: function(event) { $data.setRenameForm($(event.target)) }">Rename</a>
+                        {% raw '{{' %}/if{% raw '}}' %}
+                        <a href="#" data-bind="text: $data.name(), click: $data.setActive"></a>
+                    </span>
+                </li>
+                {% raw '{{' %}/if{% raw '}}' %}
+            </script>
+            <!-- end screen item -->
+
+            <section id="log-holder" class="cf" data-bind="template: { name:'window', foreach:logs}">
+                <div class="item" id="log-form-holder" data-bind="template: 'addLog'" data-hidden="visible"></div>
+            </section>
+
+            <!-- log item template -->
+            <script id="window" type="text/html">
+                <div class="item" data-bind="attr: {'data-hidden' : $data.setHiddenState() }">
+                    <div class="inner-holder">
+                        <div class="header-holder">
+                            <h5 data-bind="text: $data.src"></h5>
+                            <a href="#" class="icon delete" data-bind="click: $data.remove">X</a>
+                        </div>
+                        <div class="body" data-bind="template: { name: 'message-item', foreach: $data.messages }"></div>
+                    </div>
+                </div>
+            </script>
+            <!-- end log item template -->
+
+            <!-- message template for item -->
+            <script id="message-item" type="text/html">
+                <span data-bind="text: $data"></span>
+            </script>
+            <!-- end message template -->
+
+            <!-- add log form template  -->
+            <script id="addLog" type="text/html">
+                <div class="inner-holder">
+                    <form  data-bind="submit: app.sendFollowLogReguest">
+                        <input type="text" id="log-name" placeholder="add log..." />
+                    </form>
+                </div>
+            </script>
+            <!-- end add log form template  -->
+
+            <!-- -------------------  -->
+            <!--        forms         -->
+            <!-- -------------------  -->
+
+            <div class="form-holder simple" id="screen-edit-form-holder" data-bind="template: 'edit-screen-form'"></div>
+
+            <!-- edit screen form template  -->
+            <script id="edit-screen-form" type="text/html">
+                <form  data-bind="submit: app.renameScreen">
+                    <input type="hidden" name="oldName" />
+                    <label for="screen-edit-name">Rename screen:</label>
+                    <input type="text" name="name" id="screen-edit-name"/>
+                </form>
+            </script>
+            <!-- end edit screen form template  -->
+
+        </div>
+        <footer>
+            <a href="mailto:">logfollow</a>
+            <br>
+            2012
+        </footer>
+
+        <script type="text/javascript" src="/static/js/app.js"></script>
+        <script type="text/javascript">
+            $(document).ready(function() {
+                app.init();
+            });
+        </script>
+    </body>
+</html>
